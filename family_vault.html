@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Vault & Council Dashboard</title>
+    <!-- Gun.js for Free Live Air-Bridge Syncing -->
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <style>
+        :root {
+            --bg-color: #0d0e12;
+            --card-bg: #16181d;
+            --text-main: #ffffff;
+            --text-muted: #8b8e98;
+            --gold: #d4af37;
+            --gold-hover: #f0c950;
+            --danger: #ff4a4a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a2d35;
+        }
+
+        .header h1 {
+            color: var(--gold);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .profile-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, input[type="text"], button {
+            background: #23262f;
+            color: white;
+            border: 1px solid #3a3f50;
+            padding: 8px 15px;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        button {
+            background: var(--gold);
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+
+        button:hover {
+            background: var(--gold-hover);
+        }
+
+        .dashboard-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2a2d35;
+        }
+
+        .total-spent-ring {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid #2a2d35;
+            border-top-color: var(--gold);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .total-spent-ring h2 {
+            color: var(--gold);
+            font-size: 1.8rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .input-group input {
+            flex-grow: 1;
+            padding: 12px;
+        }
+
+        .ledger-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2d35;
+        }
+
+        .ledger-item:last-child {
+            border-bottom: none;
+        }
+
+        .gold-text {
+            color: var(--gold);
+        }
+        
+        .masked-badge {
+            background: #2a2d35;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>◆ Family Vault</h1>
+        <div class="profile-section">
+            <select id="profileSelector">
+                <option value="">Select Profile...</option>
+                <option value="Papa">Papa</option>
+                <option value="Mama">Mama</option>
+                <option value="Brother">Brother</option>
+                <option value="Sister">Sister</option>
+            </select>
+            <button onclick="claimProfile()">Login / Claim</button>
+        </div>
+    </div>
+
+    <div id="mainDashboard" class="dashboard-grid hidden">
+        <!-- Shared Total (Public) -->
+        <div class="card" style="text-align: center;">
+            <div class="total-spent-ring">
+                <h2 id="globalTotalDisplay">₹0</h2>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">SHARED TOTAL</span>
+            </div>
+        </div>
+
+        <!-- Expense Logger -->
+        <div class="card">
+            <h3 style="font-size: 1rem; margin-bottom: 5px;">LOG EXPENSE</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Private text remains on this device. Only categories sync.</span>
+            <div class="input-group">
+                <input type="text" id="expenseInput" placeholder="e.g., 200 rs nails or 500 bike repair...">
+                <button onclick="processExpense()">➤</button>
+            </div>
+        </div>
+
+        <!-- Global Shared Ledger -->
+        <div class="card">
+            <h3 style="font-size: 1rem; margin-bottom: 15px; color: var(--gold);">Global Family Pool</h3>
+            <div id="globalLedgerList">
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Waiting for sync...</p>
+            </div>
+        </div>
+
+        <!-- Private Ledger (Local Only) -->
+        <div class="card" style="border-color: #3a3f50;">
+            <h3 style="font-size: 1rem; margin-bottom: 15px;">🔒 Your Private Ledger (<span id="privateProfileName"></span>)</h3>
+            <div id="privateLedgerList">
+                <p style="color: var(--text-muted); font-size: 0.9rem;">No private entries yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. CORE SYSTEM SETUP & AIR-BRIDGE (GUN.JS)
+        // ==========================================
+        const ROOM_ID = "krishna_vault_2026_prod";
+        // Connect to a free, public decentralized relay network
+        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']); 
+        const vaultDB = gun.get(ROOM_ID);
+        
+        let currentUser = null;
+        let globalTotal = 0;
+
+        // Generate or fetch hardware Device ID
+        function getDeviceID() {
+            let id = localStorage.getItem('vault_device_id');
+            if (!id) {
+                id = 'device_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('vault_device_id', id);
+            }
+            return id;
+        }
+        const deviceID = getDeviceID();
+
+        // ==========================================
+        // 2. DEVICE LOCKING & SECURITY
+        // ==========================================
+        function claimProfile() {
+            const selectedName = document.getElementById('profileSelector').value;
+            if (!selectedName) return alert("Please select a profile first.");
+
+            // Check the network to see if this profile is already owned by a different device
+            vaultDB.get('locks').get(selectedName).once((ownerID) => {
+                if (ownerID && ownerID !== deviceID) {
+                    alert(`🔒 Access Denied! The profile '${selectedName}' is strictly locked to another device.`);
+                    document.getElementById('profileSelector').value = "";
+                } else {
+                    // Claim successful
+                    vaultDB.get('locks').get(selectedName).put(deviceID);
+                    currentUser = selectedName;
+                    
+                    document.getElementById('mainDashboard').classList.remove('hidden');
+                    document.getElementById('privateProfileName').innerText = currentUser;
+                    
+                    loadPrivateLedger();
+                }
+            });
+        }
+
+        // ==========================================
+        // 3. PRIVACY MASKING ENGINE
+        // ==========================================
+        function maskData(rawText) {
+            rawText = rawText.toLowerCase();
+            
+            // Extract Number using Regex (e.g., "200 rs", "Rs.500", "50")
+            const amountMatch = rawText.match(/\d+/);
+            const amount = amountMatch ? parseInt(amountMatch[0]) : 0;
+
+            // Categorize based on hidden keywords
+            let category = "Other / Miscellaneous";
+            
+            if (rawText.includes("nail") || rawText.includes("hair") || rawText.includes("makeup") || rawText.includes("clothes")) {
+                category = "Personal Grooming";
+            } else if (rawText.includes("bike") || rawText.includes("tyre") || rawText.includes("petrol") || rawText.includes("repair")) {
+                category = "Transport & Maintenance";
+            } else if (rawText.includes("book") || rawText.includes("school") || rawText.includes("fee")) {
+                category = "Education";
+            } else if (rawText.includes("smoke") || rawText.includes("beer") || rawText.includes("party")) {
+                category = "Discretionary (Personal)";
+            } else if (rawText.includes("food") || rawText.includes("dinner") || rawText.includes("grocery")) {
+                category = "Food & Groceries";
+            }
+
+            return { amount, category };
+        }
+
+        // ==========================================
+        // 4. DATA PROCESSING & SYNCING
+        // ==========================================
+        function processExpense() {
+            const inputField = document.getElementById('expenseInput');
+            const rawText = inputField.value.trim();
+            if (!rawText) return;
+
+            const { amount, category } = maskData(rawText);
+
+            if (amount === 0) {
+                return alert("Could not detect a valid amount. Please include numbers (e.g., '200 rs nails').");
+            }
+
+            // A. Save the RAW SECRET text strictly locally
+            saveToPrivateLedger(rawText, amount);
+
+            // B. Broadcast the MASKED data to the Air-Bridge
+            const timestamp = new Date().getTime();
+            vaultDB.get('global_expenses').get(timestamp.toString()).put({
+                user: currentUser,
+                amount: amount,
+                category: category,
+                time: timestamp
+            });
+
+            inputField.value = ""; // Clear field
+        }
+
+        function saveToPrivateLedger(rawText, amount) {
+            let privateData = JSON.parse(localStorage.getItem(`private_ledger_${currentUser}`)) || [];
+            privateData.push({ text: rawText, amount: amount, date: new Date().toLocaleDateString() });
+            localStorage.setItem(`private_ledger_${currentUser}`, JSON.stringify(privateData));
+            loadPrivateLedger();
+        }
+
+        // ==========================================
+        // 5. UI UPDATES & LIVE LISTENERS
+        // ==========================================
+        function loadPrivateLedger() {
+            const list = document.getElementById('privateLedgerList');
+            let privateData = JSON.parse(localStorage.getItem(`private_ledger_${currentUser}`)) || [];
+            
+            if (privateData.length === 0) return;
+
+            list.innerHTML = "";
+            privateData.forEach(item => {
+                list.innerHTML += `
+                    <div class="ledger-item">
+                        <span>${item.text}</span>
+                        <span class="gold-text">₹${item.amount}</span>
+                    </div>
+                `;
+            });
+        }
+
+        // Listen for ANY expense globally (Air-Bridge Sync)
+        vaultDB.get('global_expenses').map().on((data, id) => {
+            if (!data) return; // Ignore nulls
+            
+            // Add to UI
+            const globalList = document.getElementById('globalLedgerList');
+            
+            // Remove the "Waiting" text on first load
+            if (globalList.innerHTML.includes('Waiting')) globalList.innerHTML = "";
+            
+            // Create the masked element
+            const elId = `exp_${id}`;
+            if (!document.getElementById(elId)) {
+                globalList.innerHTML += `
+                    <div class="ledger-item" id="${elId}">
+                        <span>
+                            <strong>[${data.user}]</strong> 
+                            <span class="masked-badge">${data.category}</span>
+                        </span>
+                        <span class="gold-text">+₹${data.amount}</span>
+                    </div>
+                `;
+                
+                // Update Shared Total Live
+                globalTotal += parseFloat(data.amount);
+                document.getElementById('globalTotalDisplay').innerText = `₹${globalTotal}`;
+            }
+        });
+    </script>
+</body>
+</html>
