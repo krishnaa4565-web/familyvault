@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Vault Analytics</title>
+    <!-- Stable Database Layer Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -14,6 +15,7 @@
             --gold: #c5a059;
             --gold-glow: #e5c17d;
             --border: #22252e;
+            --red: #ef5350;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -60,6 +62,8 @@
         .user-tag { font-weight: bold; font-size: 0.9rem; margin-right: 6px; }
         .cat-badge { background: #1c1f26; padding: 3px 7px; border-radius: 5px; font-size: 0.75rem; color: var(--text-muted); border: 1px solid #252933; }
         .amount-tag { color: var(--gold); font-weight: bold; font-size: 0.95rem; }
+        .delete-btn { color: var(--red); cursor: pointer; margin-left: 12px; font-size: 0.9rem; padding: 2px 5px; opacity: 0.6; transition: opacity 0.2s; }
+        .delete-btn:hover { opacity: 1; }
 
         /* Hidden Reset Action Anchor */
         .footer-action { text-align: center; margin-top: 15px; }
@@ -71,6 +75,7 @@
 
     <div class="container">
         
+        <!-- PROFILE LOCK GUARDIAN SCREEN -->
         <div id="onboardingScreen">
             <div class="card" style="text-align: center;">
                 <h2 style="color: var(--gold); margin-bottom: 10px;">Family Vault Setup</h2>
@@ -86,6 +91,7 @@
             </div>
         </div>
 
+        <!-- MAIN OPERATIONAL TRACKER DASHBOARD (HIDDEN UNTIL CLAIMED) -->
         <div id="mainDashboard" style="display: none;">
             
             <div class="app-header">
@@ -93,6 +99,7 @@
                 <div class="active-user-badge" id="userBadge">Profile</div>
             </div>
 
+            <!-- WEEK, MONTH, YEAR TIME-VELOCITY BLOCKS -->
             <div class="card">
                 <div class="card-title">Macro Expenditure Overview</div>
                 <div class="dashboard-grid">
@@ -111,6 +118,7 @@
                 </div>
             </div>
 
+            <!-- ESTIMATOR CORE BLOCK -->
             <div class="card" style="background: linear-gradient(145deg, #14161d, #1a1d24);">
                 <div class="card-title" style="color: var(--gold);">Month-End Savings Predictor</div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -119,6 +127,7 @@
                 </div>
             </div>
 
+            <!-- AUTOMATED SENTENCE STRIPPING INPUT LOGGER -->
             <div class="card">
                 <div class="card-title">Log New Metric Entry</div>
                 <div class="input-wrapper">
@@ -128,6 +137,7 @@
                 <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px;">*All raw private text descriptions are instantly scrubbed and deleted on-device before sync.</p>
             </div>
 
+            <!-- SHARED SYNCED POOL LEDGER -->
             <div class="card">
                 <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>Live Network Log Stream</span>
@@ -138,6 +148,7 @@
                 </div>
             </div>
 
+            <!-- HIDDEN PROFILE SWITCH ACTION LINK -->
             <div class="footer-action">
                 <span class="reset-link" onclick="releaseProfileClaim()">Clear Cached Profile Lock</span>
             </div>
@@ -205,7 +216,6 @@
                 determinedCategory = "Bills & Utilities";
             }
 
-            // Note: The raw input sentence context string is entirely omitted and dropped here.
             return { amount: verifiedAmount, category: determinedCategory };
         }
 
@@ -232,6 +242,22 @@
             } else {
                 inputField.value = "";
                 syncPoolData(); // Force live structural recount
+            }
+        }
+
+        // 🗑️ CLOUD ENTRY DELETION ENGINE
+        async function deleteEntry(entryId) {
+            if (!confirm("Are you sure you want to delete this entry? It will update everyone's screen total.")) return;
+
+            const { error } = await supabase
+                .from('family_expenses')
+                .delete()
+                .eq('id', entryId);
+
+            if (error) {
+                alert("Failed to delete entry: " + error.message);
+            } else {
+                syncPoolData(); // Instantly recalculate values locally
             }
         }
 
@@ -276,14 +302,17 @@
                 if (transactionTimestamp.getMonth() === momentNow.getMonth() && transactionTimestamp.getFullYear() === momentNow.getFullYear()) sumMonth += parseFloat(item.amount);
                 if (transactionTimestamp.getFullYear() === momentNow.getFullYear()) sumYear += parseFloat(item.amount);
 
-                // Append row visually without printing any text definitions
+                // Append row visually with interactive deletion hooks
                 logContainer.innerHTML += `
                     <div class="ledger-row">
                         <div>
                             <span class="user-tag">[${item.user_name}]</span>
                             <span class="cat-badge">${item.category}</span>
                         </div>
-                        <span class="amount-tag">+₹${item.amount}</span>
+                        <div style="display: flex; align-items: center;">
+                            <span class="amount-tag">+₹${item.amount}</span>
+                            <span class="delete-btn" onclick="deleteEntry(${item.id})">🗑️</span>
+                        </div>
                     </div>
                 `;
             });
