@@ -3,359 +3,313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Vault & Council Dashboard</title>
-    <!-- Gun.js for Free Live Air-Bridge Syncing -->
-    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <title>Family Vault Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-color: #0d0e12;
-            --card-bg: #16181d;
+            --bg-color: #0b0c10;
+            --card-bg: #14161d;
             --text-main: #ffffff;
-            --text-muted: #8b8e98;
-            --gold: #d4af37;
-            --gold-hover: #f0c950;
-            --danger: #ff4a4a;
+            --text-muted: #7a7e85;
+            --gold: #c5a059;
+            --gold-glow: #e5c17d;
+            --border: #22252e;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: 20px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #2a2d35;
-        }
-
-        .header h1 {
-            color: var(--gold);
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .profile-section {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        select, input[type="text"], button {
-            background: #23262f;
-            color: white;
-            border: 1px solid #3a3f50;
-            padding: 8px 15px;
-            border-radius: 8px;
-            outline: none;
-        }
-
-        button {
-            background: var(--gold);
-            color: black;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-        }
-
-        button:hover {
-            background: var(--gold-hover);
-        }
-
-        .dashboard-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #2a2d35;
-        }
-
-        .total-spent-ring {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 4px solid #2a2d35;
-            border-top-color: var(--gold);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto;
-        }
-
-        .total-spent-ring h2 {
-            color: var(--gold);
-            font-size: 1.8rem;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .input-group input {
-            flex-grow: 1;
-            padding: 12px;
-        }
-
-        .ledger-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #2a2d35;
-        }
-
-        .ledger-item:last-child {
-            border-bottom: none;
-        }
-
-        .gold-text {
-            color: var(--gold);
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 15px; padding-bottom: 60px; }
         
-        .masked-badge {
-            background: #2a2d35;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
+        .container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+        
+        /* App Branding Header */
+        .app-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 5px; border-bottom: 1px solid var(--border);
         }
+        .app-header h1 { color: var(--gold); font-size: 1.25rem; letter-spacing: 1px; font-weight: 700; }
+        .active-user-badge { background: #1c1f26; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border); color: var(--gold-glow); }
 
-        .hidden {
-            display: none !important;
+        /* General UI components */
+        .card { background-color: var(--card-bg); border-radius: 14px; padding: 18px; border: 1px solid var(--border); }
+        .card-title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; font-weight: 600; }
+        
+        /* Session Profile Onboarding Guard */
+        #onboardingScreen { display: flex; flex-direction: column; gap: 15px; margin-top: 40px; }
+        select, input[type="text"], button {
+            width: 100%; background: #1c1f26; color: white; border: 1px solid var(--border);
+            padding: 12px; border-radius: 10px; font-size: 1rem; outline: none;
         }
+        button { background: var(--gold); color: #0b0c10; font-weight: bold; cursor: pointer; border: none; transition: background 0.2s; }
+        button:hover { background: var(--gold-glow); }
+
+        /* Macro Dashboard Metric Grid */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .metric-box { background: #1a1d24; border-radius: 10px; padding: 12px; border: 1px solid #232730; text-align: center; }
+        .metric-val { font-size: 1.2rem; font-weight: bold; color: var(--gold-glow); margin-top: 4px; }
+        .metric-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Logger Input */
+        .input-wrapper { display: flex; gap: 8px; }
+        .input-wrapper input { flex-grow: 1; }
+        .input-wrapper button { width: 50px; padding: 0; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
+
+        /* Ledger Pool List */
+        .pool-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .ledger-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; border-bottom: 1px solid #1c1f26; }
+        .ledger-row:last-child { border-bottom: none; }
+        .user-tag { font-weight: bold; font-size: 0.9rem; margin-right: 6px; }
+        .cat-badge { background: #1c1f26; padding: 3px 7px; border-radius: 5px; font-size: 0.75rem; color: var(--text-muted); border: 1px solid #252933; }
+        .amount-tag { color: var(--gold); font-weight: bold; font-size: 0.95rem; }
+
+        /* Hidden Reset Action Anchor */
+        .footer-action { text-align: center; margin-top: 15px; }
+        .reset-link { font-size: 0.75rem; color: #3b3f46; text-decoration: none; cursor: pointer; }
+        .reset-link:hover { color: var(--text-muted); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>◆ Family Vault</h1>
-        <div class="profile-section">
-            <select id="profileSelector">
-                <option value="">Select Profile...</option>
-                <option value="Papa">Papa</option>
-                <option value="Mama">Mama</option>
-                <option value="Brother">Brother</option>
-                <option value="Sister">Sister</option>
-            </select>
-            <button onclick="claimProfile()">Login / Claim</button>
-        </div>
-    </div>
-
-    <div id="mainDashboard" class="dashboard-grid hidden">
-        <!-- Shared Total (Public) -->
-        <div class="card" style="text-align: center;">
-            <div class="total-spent-ring">
-                <h2 id="globalTotalDisplay">₹0</h2>
-                <span style="font-size: 0.8rem; color: var(--text-muted);">SHARED TOTAL</span>
+    <div class="container">
+        
+        <div id="onboardingScreen">
+            <div class="card" style="text-align: center;">
+                <h2 style="color: var(--gold); margin-bottom: 10px;">Family Vault Setup</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Claim your physical device profile to continue.</p>
+                
+                <select id="profilePicker" style="margin-bottom: 15px;">
+                    <option value="AJIT">AJIT (Papa)</option>
+                    <option value="SONALI">SONALI (Mummy)</option>
+                    <option value="KRISHAN">KRISHAN (Brother)</option>
+                    <option value="TANVI">TANVI (Sister)</option>
+                </select>
+                <button onclick="claimProfile()">Claim Device Profile</button>
             </div>
         </div>
 
-        <!-- Expense Logger -->
-        <div class="card">
-            <h3 style="font-size: 1rem; margin-bottom: 5px;">LOG EXPENSE</h3>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Private text remains on this device. Only categories sync.</span>
-            <div class="input-group">
-                <input type="text" id="expenseInput" placeholder="e.g., 200 rs nails or 500 bike repair...">
-                <button onclick="processExpense()">➤</button>
+        <div id="mainDashboard" style="display: none;">
+            
+            <div class="app-header">
+                <h1>◆ FAMILY POOL</h1>
+                <div class="active-user-badge" id="userBadge">Profile</div>
             </div>
-        </div>
 
-        <!-- Global Shared Ledger -->
-        <div class="card">
-            <h3 style="font-size: 1rem; margin-bottom: 15px; color: var(--gold);">Global Family Pool</h3>
-            <div id="globalLedgerList">
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Waiting for sync...</p>
+            <div class="card">
+                <div class="card-title">Macro Expenditure Overview</div>
+                <div class="dashboard-grid">
+                    <div class="metric-box">
+                        <div class="metric-lbl">This Week</div>
+                        <div class="metric-val" id="weekDisplay">₹0</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-lbl">This Month</div>
+                        <div class="metric-val" id="monthDisplay">₹0</div>
+                    </div>
+                    <div class="metric-box" style="grid-column: span 2;">
+                        <div class="metric-lbl">Yearly Structural Pool</div>
+                        <div class="metric-val" id="yearDisplay">₹0</div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Private Ledger (Local Only) -->
-        <div class="card" style="border-color: #3a3f50;">
-            <h3 style="font-size: 1rem; margin-bottom: 15px;">🔒 Your Private Ledger (<span id="privateProfileName"></span>)</h3>
-            <div id="privateLedgerList">
-                <p style="color: var(--text-muted); font-size: 0.9rem;">No private entries yet.</p>
+            <div class="card" style="background: linear-gradient(145deg, #14161d, #1a1d24);">
+                <div class="card-title" style="color: var(--gold);">Month-End Savings Predictor</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Estimated Remaining Balance:</span>
+                    <span id="savingsDisplay" style="font-size: 1.3rem; font-weight: bold; color: #4caf50;">₹0</span>
+                </div>
             </div>
+
+            <div class="card">
+                <div class="card-title">Log New Metric Entry</div>
+                <div class="input-wrapper">
+                    <input type="text" id="statementInput" placeholder="Type sentence (e.g., 2000 petrol)...">
+                    <button onclick="processAndPostEntry()">➤</button>
+                </div>
+                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px;">*All raw private text descriptions are instantly scrubbed and deleted on-device before sync.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Live Network Log Stream</span>
+                    <span onclick="syncPoolData()" style="cursor:pointer; color: var(--gold); font-size:0.75rem;">🔄 SYNC</span>
+                </div>
+                <div class="pool-list" id="logRenderContainer">
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Connecting to network matrix...</p>
+                </div>
+            </div>
+
+            <div class="footer-action">
+                <span class="reset-link" onclick="releaseProfileClaim()">Clear Cached Profile Lock</span>
+            </div>
+
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // 1. CORE SYSTEM SETUP & AIR-BRIDGE (GUN.JS)
-        // ==========================================
-        const ROOM_ID = "krishna_vault_2026_prod";
-        // Connect to a free, public decentralized relay network
-        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']); 
-        const vaultDB = gun.get(ROOM_ID);
-        
-        let currentUser = null;
-        let globalTotal = 0;
+        // ===================================================
+        // 🔑 SUPABASE SECURITY KEY INJECTION POINT
+        // ===================================================
+        const SUPABASE_URL = "PASTE_YOUR_SUPABASE_PROJECT_URL_HERE"; 
+        const SUPABASE_KEY = "PASTE_YOUR_SUPABASE_ANON_PUBLIC_KEY_HERE";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Generate or fetch hardware Device ID
-        function getDeviceID() {
-            let id = localStorage.getItem('vault_device_id');
-            if (!id) {
-                id = 'device_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('vault_device_id', id);
+        let activeUserProfile = "";
+        const MONTHLY_TARGET_BUDGET_CAP = 50000; // Baseline reference cap for the month-end savings math
+
+        // Check if device profile was claimed previously
+        window.onload = function() {
+            const cachedProfile = localStorage.getItem('vault_profile_lock');
+            if (cachedProfile) {
+                activateDashboard(cachedProfile);
             }
-            return id;
-        }
-        const deviceID = getDeviceID();
+        };
 
-        // ==========================================
-        // 2. DEVICE LOCKING & SECURITY
-        // ==========================================
         function claimProfile() {
-            const selectedName = document.getElementById('profileSelector').value;
-            if (!selectedName) return alert("Please select a profile first.");
-
-            // Check the network to see if this profile is already owned by a different device
-            vaultDB.get('locks').get(selectedName).once((ownerID) => {
-                if (ownerID && ownerID !== deviceID) {
-                    alert(`🔒 Access Denied! The profile '${selectedName}' is strictly locked to another device.`);
-                    document.getElementById('profileSelector').value = "";
-                } else {
-                    // Claim successful
-                    vaultDB.get('locks').get(selectedName).put(deviceID);
-                    currentUser = selectedName;
-                    
-                    document.getElementById('mainDashboard').classList.remove('hidden');
-                    document.getElementById('privateProfileName').innerText = currentUser;
-                    
-                    loadPrivateLedger();
-                }
-            });
+            const selectedVal = document.getElementById('profilePicker').value;
+            localStorage.setItem('vault_profile_lock', selectedVal);
+            activateDashboard(selectedVal);
         }
 
-        // ==========================================
-        // 3. PRIVACY MASKING ENGINE
-        // ==========================================
-        function maskData(rawText) {
-            rawText = rawText.toLowerCase();
-            
-            // Extract Number using Regex (e.g., "200 rs", "Rs.500", "50")
-            const amountMatch = rawText.match(/\d+/);
-            const amount = amountMatch ? parseInt(amountMatch[0]) : 0;
+        function releaseProfileClaim() {
+            if(confirm("Are you sure you want to log out of this profile lock?")) {
+                localStorage.removeItem('vault_profile_lock');
+                document.getElementById('mainDashboard').style.display = "none";
+                document.getElementById('onboardingScreen').style.display = "flex";
+            }
+        }
 
-            // Categorize based on hidden keywords
-            let category = "Other / Miscellaneous";
+        function activateDashboard(userProfile) {
+            activeUserProfile = userProfile;
+            document.getElementById('userBadge').innerText = "👤 " + userProfile;
+            document.getElementById('onboardingScreen').style.display = "none";
+            document.getElementById('mainDashboard').style.display = "block";
+            syncPoolData();
+        }
+
+        // 🧠 ON-DEVICE TEXT DELETION & CATEGORY ENGINE
+        function cleanAndMaskStatement(rawText) {
+            const cleanStr = rawText.toLowerCase();
+            const numericExtract = cleanStr.match(/\d+/);
+            const verifiedAmount = numericExtract ? parseFloat(numericExtract[0]) : 0;
+
+            let determinedCategory = "Other / Expenses";
             
-            if (rawText.includes("nail") || rawText.includes("hair") || rawText.includes("makeup") || rawText.includes("clothes")) {
-                category = "Personal Grooming";
-            } else if (rawText.includes("bike") || rawText.includes("tyre") || rawText.includes("petrol") || rawText.includes("repair")) {
-                category = "Transport & Maintenance";
-            } else if (rawText.includes("book") || rawText.includes("school") || rawText.includes("fee")) {
-                category = "Education";
-            } else if (rawText.includes("smoke") || rawText.includes("beer") || rawText.includes("party")) {
-                category = "Discretionary (Personal)";
-            } else if (rawText.includes("food") || rawText.includes("dinner") || rawText.includes("grocery")) {
-                category = "Food & Groceries";
+            // Map keywords to standard, scrubbed tracking categories
+            if (cleanStr.includes("petrol") || cleanStr.includes("fuel") || cleanStr.includes("car") || cleanStr.includes("bike") || cleanStr.includes("auto")) {
+                determinedCategory = "Transport & Fuel";
+            } else if (cleanStr.includes("food") || cleanStr.includes("dinner") || cleanStr.includes("grocery") || cleanStr.includes("restaurant") || cleanStr.includes("swiggy") || cleanStr.includes("zomato")) {
+                determinedCategory = "Food & Dining";
+            } else if (cleanStr.includes("nail") || cleanStr.includes("makeup") || cleanStr.includes("salon") || cleanStr.includes("clothes") || cleanStr.includes("shopping")) {
+                determinedCategory = "Personal Grooming";
+            } else if (cleanStr.includes("rent") || cleanStr.includes("electricity") || cleanStr.includes("bill") || cleanStr.includes("wifi") || cleanStr.includes("recharge")) {
+                determinedCategory = "Bills & Utilities";
             }
 
-            return { amount, category };
+            // Note: The raw input sentence context string is entirely omitted and dropped here.
+            return { amount: verifiedAmount, category: determinedCategory };
         }
 
-        // ==========================================
-        // 4. DATA PROCESSING & SYNCING
-        // ==========================================
-        function processExpense() {
-            const inputField = document.getElementById('expenseInput');
-            const rawText = inputField.value.trim();
-            if (!rawText) return;
+        // Process entry and push data to cloud
+        async function processAndPostEntry() {
+            const inputField = document.getElementById('statementInput');
+            const rawValue = inputField.value.trim();
+            if (!rawValue) return;
 
-            const { amount, category } = maskData(rawText);
+            const { amount, category } = cleanAndMaskStatement(rawValue);
 
-            if (amount === 0) {
-                return alert("Could not detect a valid amount. Please include numbers (e.g., '200 rs nails').");
+            if (amount <= 0) {
+                alert("Please type a clear statement containing a clear money number (e.g., 500 petrol).");
+                return;
             }
 
-            // A. Save the RAW SECRET text strictly locally
-            saveToPrivateLedger(rawText, amount);
+            // Push clean metric values safely to the remote cloud server
+            const { error } = await supabase
+                .from('family_expenses')
+                .insert([{ user_name: activeUserProfile, category: category, amount: amount }]);
 
-            // B. Broadcast the MASKED data to the Air-Bridge
-            const timestamp = new Date().getTime();
-            vaultDB.get('global_expenses').get(timestamp.toString()).put({
-                user: currentUser,
-                amount: amount,
-                category: category,
-                time: timestamp
-            });
-
-            inputField.value = ""; // Clear field
+            if (error) {
+                alert("Cloud Sync Failure: " + error.message);
+            } else {
+                inputField.value = "";
+                syncPoolData(); // Force live structural recount
+            }
         }
 
-        function saveToPrivateLedger(rawText, amount) {
-            let privateData = JSON.parse(localStorage.getItem(`private_ledger_${currentUser}`)) || [];
-            privateData.push({ text: rawText, amount: amount, date: new Date().toLocaleDateString() });
-            localStorage.setItem(`private_ledger_${currentUser}`, JSON.stringify(privateData));
-            loadPrivateLedger();
+        // Sync and pull structural dashboard balances from Supabase
+        async function syncPoolData() {
+            const { data, error } = await supabase
+                .from('family_expenses')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                document.getElementById('logRenderContainer').innerHTML = `<p style='color:red; font-size:0.8rem;'>Sync connection down. Re-verifying configuration metrics...</p>`;
+                return;
+            }
+
+            renderDashboardMetrics(data);
         }
 
-        // ==========================================
-        // 5. UI UPDATES & LIVE LISTENERS
-        // ==========================================
-        function loadPrivateLedger() {
-            const list = document.getElementById('privateLedgerList');
-            let privateData = JSON.parse(localStorage.getItem(`private_ledger_${currentUser}`)) || [];
+        function renderDashboardMetrics(itemsList) {
+            const logContainer = document.getElementById('logRenderContainer');
             
-            if (privateData.length === 0) return;
+            if (!itemsList || itemsList.length === 0) {
+                logContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem;">No data objects tracked yet.</p>`;
+                updateMetricDisplays(0, 0, 0);
+                return;
+            }
 
-            list.innerHTML = "";
-            privateData.forEach(item => {
-                list.innerHTML += `
-                    <div class="ledger-item">
-                        <span>${item.text}</span>
-                        <span class="gold-text">₹${item.amount}</span>
+            const momentNow = new Date();
+            let sumWeek = 0;
+            let sumMonth = 0;
+            let sumYear = 0;
+
+            logContainer.innerHTML = "";
+
+            itemsList.forEach(item => {
+                const transactionTimestamp = new Date(item.created_at);
+                const varianceInTime = momentNow - transactionTimestamp;
+                const totalDaysPast = varianceInTime / (1000 * 60 * 60 * 24);
+
+                // Calculations matching macro dashboard structural blocks
+                if (totalDaysPast <= 7) sumWeek += parseFloat(item.amount);
+                if (transactionTimestamp.getMonth() === momentNow.getMonth() && transactionTimestamp.getFullYear() === momentNow.getFullYear()) sumMonth += parseFloat(item.amount);
+                if (transactionTimestamp.getFullYear() === momentNow.getFullYear()) sumYear += parseFloat(item.amount);
+
+                // Append row visually without printing any text definitions
+                logContainer.innerHTML += `
+                    <div class="ledger-row">
+                        <div>
+                            <span class="user-tag">[${item.user_name}]</span>
+                            <span class="cat-badge">${item.category}</span>
+                        </div>
+                        <span class="amount-tag">+₹${item.amount}</span>
                     </div>
                 `;
             });
+
+            updateMetricDisplays(sumWeek, sumMonth, sumYear);
         }
 
-        // Listen for ANY expense globally (Air-Bridge Sync)
-        vaultDB.get('global_expenses').map().on((data, id) => {
-            if (!data) return; // Ignore nulls
+        function updateMetricDisplays(wTotal, mTotal, yTotal) {
+            document.getElementById('weekDisplay').innerText = "₹" + wTotal;
+            document.getElementById('monthDisplay').innerText = "₹" + mTotal;
+            document.getElementById('yearDisplay').innerText = "₹" + yTotal;
+
+            // Month-end core budget calculation
+            const expectedRemainingSavings = MONTHLY_TARGET_BUDGET_CAP - mTotal;
+            const savingsDisplayElement = document.getElementById('savingsDisplay');
             
-            // Add to UI
-            const globalList = document.getElementById('globalLedgerList');
-            
-            // Remove the "Waiting" text on first load
-            if (globalList.innerHTML.includes('Waiting')) globalList.innerHTML = "";
-            
-            // Create the masked element
-            const elId = `exp_${id}`;
-            if (!document.getElementById(elId)) {
-                globalList.innerHTML += `
-                    <div class="ledger-item" id="${elId}">
-                        <span>
-                            <strong>[${data.user}]</strong> 
-                            <span class="masked-badge">${data.category}</span>
-                        </span>
-                        <span class="gold-text">+₹${data.amount}</span>
-                    </div>
-                `;
-                
-                // Update Shared Total Live
-                globalTotal += parseFloat(data.amount);
-                document.getElementById('globalTotalDisplay').innerText = `₹${globalTotal}`;
+            savingsDisplayElement.innerText = "₹" + expectedRemainingSavings;
+            if(expectedRemainingSavings < 0) {
+                savingsDisplayElement.style.color = "#ef5350"; // Switch warning highlights automatically if cap breached
+            } else {
+                savingsDisplayElement.style.color = "#4caf50";
             }
-        });
+        }
+
+        // Automated continuous background network refresh (Pulls clean sync files every 7 seconds)
+        setInterval(syncPoolData, 7000);
     </script>
 </body>
 </html>
