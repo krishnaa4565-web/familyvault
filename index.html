@@ -4,34 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Premium Family Vault</title>
-    <script type="module">
-        // Firebase SDK v11 - Modular
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCoTYGbNmR-mIQpcnwzA2eI8Hnu9FBzISY",
-            authDomain: "family-vault-f268d.firebaseapp.com",
-            databaseURL: "https://family-vault-f268d-default-rtdb.firebaseio.com",
-            projectId: "family-vault-f268d",
-            storageBucket: "family-vault-f268d.firebasestorage.app",
-            messagingSenderId: "444906390570",
-            appId: "1:444906390570:web:5bd667bf99dd7c60db6f53",
-            measurementId: "G-4P1LQK90W5"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // Expose to global for non-module scripts
-        window.firebaseDB = db;
-        window.firebaseRef = ref;
-        window.firebaseOnValue = onValue;
-        window.firebaseSet = set;
-        window.firebasePush = push;
-        window.firebaseRemove = remove;
-        window.firebaseUpdate = update;
-    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --bg: #0b0c10;
@@ -48,10 +22,8 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
         body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
 
-        /* --- LOGIN OVERLAY --- */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: var(--bg); z-index: 9999; display: flex; flex-direction: column;
@@ -86,16 +58,9 @@
             padding: 6px 14px; font-size: 0.8rem; width: auto;
         }
         .btn-danger:hover { background: rgba(255,68,68,0.3); }
-        .btn-success {
-            background: rgba(74,222,128,0.15); color: var(--success); border: 1px solid rgba(74,222,128,0.3);
-            padding: 6px 14px; font-size: 0.8rem; width: auto;
-        }
-        .btn-success:hover { background: rgba(74,222,128,0.3); }
 
-        /* --- MAIN LAYOUT --- */
         #appContainer { display: none; height: 100vh; width: 100vw; }
 
-        /* Navigation */
         #navBar {
             background: var(--card); border-top: 1px solid var(--gold-dim);
             position: fixed; bottom: 0; width: 100%; height: var(--nav-size);
@@ -108,13 +73,11 @@
         .nav-item.active { color: var(--gold); font-weight: bold; }
         .nav-icon { font-size: 1.5rem; display: block; margin-bottom: 3px; }
 
-        /* Content Area */
         #contentArea {
             height: calc(100vh - var(--nav-size)); overflow-y: auto; padding: 20px;
             width: 100%;
         }
 
-        /* Desktop Adjustments */
         @media(min-width: 768px) {
             #navBar {
                 top: 0; left: 0; height: 100vh; width: var(--sidebar-width);
@@ -126,14 +89,12 @@
             #contentArea { margin-left: var(--sidebar-width); width: calc(100vw - var(--sidebar-width)); height: 100vh; }
         }
 
-        /* --- VIEWS --- */
         .view { display: none; animation: fadeIn 0.3s ease; max-width: 1000px; margin: 0 auto;}
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         h2 { color: var(--gold); margin-bottom: 20px; font-weight: 400; border-bottom: 1px solid var(--gold-dim); padding-bottom: 10px;}
 
-        /* VIEW 1: LIVE LEDGER */
         .ring-container {
             height: 35vh; display: flex; align-items: center; justify-content: center;
             flex-direction: column; margin-bottom: 20px;
@@ -176,7 +137,6 @@
         .edit-btn { background: none; border: none; color: var(--gold); font-size: 1.1rem; cursor: pointer; padding-left: 10px;}
         .action-btns { display: flex; gap: 5px; align-items: center; }
 
-        /* METRIC GRIDS */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;}
         .grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;}
         @media(min-width: 600px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
@@ -192,7 +152,6 @@
         .progress-bar { width: 100%; height: 6px; background: #333; border-radius: 3px; margin-top: 10px; overflow: hidden;}
         .progress-fill { height: 100%; background: var(--gold); }
 
-        /* VIEW 5: COMPLAINTS */
         .chat-input-wrapper { display: flex; gap: 10px; margin-bottom: 20px; }
         .chat-input-wrapper input { flex: 1; padding: 15px; border-radius: 8px; background: var(--card); border: 1px solid var(--gold); color: white; outline:none;}
         .chat-input-wrapper button { padding: 0 25px; border-radius: 8px; }
@@ -202,13 +161,11 @@
         .message-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;}
         .message-body { font-size: 1rem; color: white; }
 
-        /* UTILS */
         .calendar-input {
             width: 100%; padding: 15px; background: var(--card); border: 1px solid var(--gold);
             color: white; border-radius: 8px; font-size: 1.1rem; margin-bottom: 20px; outline: none;
         }
 
-        /* MODAL */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0,0,0,0.8); z-index: 9998; display: none;
@@ -224,7 +181,6 @@
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         .modal-actions .btn { flex: 1; }
 
-        /* Sync indicator */
         .sync-indicator {
             position: fixed; top: 10px; right: 10px; z-index: 1001;
             background: var(--card); border: 1px solid var(--gold-dim);
@@ -232,31 +188,47 @@
             color: var(--gold); display: flex; align-items: center; gap: 6px;
         }
         .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+        .sync-dot.error { background: var(--danger); animation: none; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* Empty state */
         .empty-state { color: var(--text-muted); text-align: center; padding: 40px; }
+
+        .toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: var(--card); border: 1px solid var(--gold);
+            color: var(--gold); padding: 12px 24px; border-radius: 8px;
+            z-index: 10000; font-size: 0.9rem; opacity: 0; transition: 0.3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; bottom: 90px; }
+
+        .error-banner {
+            background: rgba(255,68,68,0.1); border: 1px solid rgba(255,68,68,0.3);
+            color: var(--danger); padding: 12px; border-radius: 8px; margin-bottom: 15px;
+            font-size: 0.85rem; display: none;
+        }
+        .error-banner.show { display: block; }
     </style>
 <base target="_blank">
 </head>
 <body>
 
-    <!-- SYNC INDICATOR -->
+    <div class="toast" id="toast"></div>
+
     <div class="sync-indicator" id="syncIndicator" style="display:none;">
-        <div class="sync-dot"></div>
-        <span>Live Sync Active</span>
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncText">Connecting...</span>
     </div>
 
-    <!-- EDIT MODAL -->
     <div class="modal-overlay" id="editModal">
         <div class="modal-card">
-            <h3>✏️ Edit Transaction</h3>
+            <h3>Edit Transaction</h3>
             <div class="input-group">
                 <label>Description</label>
                 <input type="text" id="editStatement" placeholder="e.g. 5000 rupees dinner">
             </div>
             <div class="input-group">
-                <label>Amount (₹)</label>
+                <label>Amount (Rs)</label>
                 <input type="number" id="editAmount" placeholder="5000">
             </div>
             <div class="input-group">
@@ -310,19 +282,19 @@
 
         <nav id="navBar">
             <div class="nav-item active" data-target="view-ledger" onclick="switchTab(this)">
-                <span class="nav-icon">◎</span> Ledger Room
+                <span class="nav-icon">&#9673;</span> Ledger Room
             </div>
             <div class="nav-item" data-target="view-analytics" onclick="switchTab(this)">
-                <span class="nav-icon">◴</span> Breakdowns
+                <span class="nav-icon">&#9684;</span> Breakdowns
             </div>
             <div class="nav-item" data-target="view-time" onclick="switchTab(this)">
-                <span class="nav-icon">📅</span> Time Filter
+                <span class="nav-icon">&#128197;</span> Time Filter
             </div>
             <div class="nav-item" data-target="view-standings" onclick="switchTab(this)">
-                <span class="nav-icon">🏆</span> Standings
+                <span class="nav-icon">&#127942;</span> Standings
             </div>
             <div class="nav-item" data-target="view-complaints" onclick="switchTab(this)">
-                <span class="nav-icon">✉</span> Grievances
+                <span class="nav-icon">&#9993;</span> Grievances
             </div>
         </nav>
 
@@ -332,12 +304,13 @@
                 <div class="ring-container">
                     <div class="giant-ring">
                         <div class="ring-label">Total Spent</div>
-                        <div class="ring-amount" id="globalTotalSpent">₹0</div>
+                        <div class="ring-amount" id="globalTotalSpent">Rs 0</div>
                     </div>
                 </div>
 
                 <div class="entry-card">
-                    <input type="text" id="expressInput" class="express-input" placeholder="e.g. 5000 rupees dinner through card" autocomplete="off">
+                    <div class="error-banner" id="errorBanner"></div>
+                    <input type="text" id="expressInput" class="express-input" placeholder="e.g. 40 rs kitkat" autocomplete="off">
 
                     <div class="input-group" style="margin-bottom:15px;text-align:left">
                         <label style="display:block;color:var(--gold);margin-bottom:8px;font-size:0.9rem">Date of Transaction</label>
@@ -358,7 +331,7 @@
                             <option value="KRISHNA">KRISHNA</option>
                         </select>
                     </div>
-                    <button class="btn" onclick="submitExpense()">Log Secure Transaction</button>
+                    <button class="btn" id="logBtn" onclick="submitExpense()">Log Secure Transaction</button>
                 </div>
 
                 <div class="ledger-list" id="mainLedgerList"></div>
@@ -377,19 +350,19 @@
                 <div class="grid-4">
                     <div class="stat-card">
                         <div class="stat-title">Today</div>
-                        <div class="stat-value" id="statToday">₹0</div>
+                        <div class="stat-value" id="statToday">Rs 0</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-title">This Week</div>
-                        <div class="stat-value" id="statWeek">₹0</div>
+                        <div class="stat-value" id="statWeek">Rs 0</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-title">This Month</div>
-                        <div class="stat-value" id="statMonth">₹0</div>
+                        <div class="stat-value" id="statMonth">Rs 0</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-title">This Year</div>
-                        <div class="stat-value" id="statYear">₹0</div>
+                        <div class="stat-value" id="statYear">Rs 0</div>
                     </div>
                 </div>
 
@@ -405,6 +378,7 @@
 
             <div id="view-complaints" class="view">
                 <h2>Family Grievances</h2>
+                <div class="error-banner" id="complaintError"></div>
                 <div class="chat-input-wrapper">
                     <input type="text" id="complaintInput" placeholder="Write a note or complaint...">
                     <button class="btn" style="width: auto;" onclick="submitComplaint()">Post</button>
@@ -416,18 +390,51 @@
     </div>
 
     <script>
-        // --- IDENTITY LOCK (LOCALSTORAGE) ---
+        // ==================== FIREBASE CONFIG ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCoTYGbNmR-mIQpcnwzA2eI8Hnu9FBzISY",
+            authDomain: "family-vault-f268d.firebaseapp.com",
+            databaseURL: "https://family-vault-f268d-default-rtdb.firebaseio.com",
+            projectId: "family-vault-f268d",
+            storageBucket: "family-vault-f268d.firebasestorage.app",
+            messagingSenderId: "444906390570",
+            appId: "1:444906390570:web:5bd667bf99dd7c60db6f53",
+            measurementId: "G-4P1LQK90W5"
+        };
+
+        // ==================== STATE ====================
         let currentUser = { name: '', role: '' };
         const storageKey = 'krishna_vault_user';
         let editingId = null;
+        let expensesData = {};
+        let complaintsData = {};
+        let selectedMode = 'CASH';
+        let isFirebaseReady = false;
+        let db, expensesRef, complaintsRef;
 
+        // ==================== TOAST ====================
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function showError(msg) {
+            const banner = document.getElementById('errorBanner');
+            banner.innerText = msg;
+            banner.classList.add('show');
+            setTimeout(() => banner.classList.remove('show'), 5000);
+        }
+
+        // ==================== IDENTITY ====================
         function checkIdentity() {
             const saved = localStorage.getItem(storageKey);
             if (saved) {
                 currentUser = JSON.parse(saved);
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'block';
-                initFirebaseSync();
+                initFirebase();
             }
         }
 
@@ -441,24 +448,72 @@
 
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
-            initFirebaseSync();
+            initFirebase();
         }
 
-        // --- UI NAVIGATION ---
+        // ==================== FIREBASE INIT ====================
+        function initFirebase() {
+            document.getElementById('syncIndicator').style.display = 'flex';
+
+            try {
+                // Check if firebase is loaded
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase SDK not loaded. Check internet connection.');
+                }
+
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                expensesRef = db.ref("krishna_family_vault_2026_final/expenses");
+                complaintsRef = db.ref("krishna_family_vault_2026_final/complaints");
+
+                // Test connection with a simple read
+                db.ref('.info/connected').on('value', (snap) => {
+                    const connected = snap.val();
+                    const dot = document.getElementById('syncDot');
+                    const text = document.getElementById('syncText');
+                    if (connected) {
+                        isFirebaseReady = true;
+                        dot.classList.remove('error');
+                        text.innerText = 'Live Sync Active';
+                    } else {
+                        dot.classList.add('error');
+                        text.innerText = 'Offline';
+                    }
+                });
+
+                // Listen for data
+                expensesRef.on('value', (snapshot) => {
+                    expensesData = snapshot.val() || {};
+                    renderApp();
+                }, (error) => {
+                    console.error('Expenses error:', error);
+                    showError('Database error: ' + error.message);
+                    document.getElementById('syncDot').classList.add('error');
+                    document.getElementById('syncText').innerText = 'Error';
+                });
+
+                complaintsRef.on('value', (snapshot) => {
+                    complaintsData = snapshot.val() || {};
+                    renderComplaints();
+                }, (error) => {
+                    console.error('Complaints error:', error);
+                });
+
+            } catch (err) {
+                console.error('Firebase init error:', err);
+                showError('Failed to connect: ' + err.message);
+                document.getElementById('syncDot').classList.add('error');
+                document.getElementById('syncText').innerText = 'Failed';
+            }
+        }
+
+        // ==================== UI NAVIGATION ====================
         function switchTab(clickedEl) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-
             clickedEl.classList.add('active');
-            const target = clickedEl.getAttribute('data-target');
-            document.getElementById(target).classList.add('active');
+            document.getElementById(clickedEl.getAttribute('data-target')).classList.add('active');
         }
-
-        // --- APP STATE & LOGIC ---
-        let selectedMode = 'CASH';
-        let expensesData = {};
-        let complaintsData = {};
-        let expensesRef, complaintsRef;
 
         function setPaymentMode(mode, element) {
             selectedMode = mode;
@@ -466,40 +521,8 @@
             element.classList.add('active');
         }
 
-        // Set today's date as default
         document.getElementById('txDate').valueAsDate = new Date();
 
-        // --- FIREBASE REALTIME SYNC ---
-        function initFirebaseSync() {
-            // Wait for Firebase module to load
-            if (!window.firebaseDB) {
-                setTimeout(initFirebaseSync, 500);
-                return;
-            }
-
-            document.getElementById('syncIndicator').style.display = 'flex';
-
-            const db = window.firebaseDB;
-            const ref = window.firebaseRef;
-            const onValue = window.firebaseOnValue;
-
-            expensesRef = ref(db, 'krishna_family_vault_2026_final/expenses');
-            complaintsRef = ref(db, 'krishna_family_vault_2026_final/complaints');
-
-            onValue(expensesRef, (snapshot) => {
-                const data = snapshot.val();
-                expensesData = data || {};
-                renderApp();
-            });
-
-            onValue(complaintsRef, (snapshot) => {
-                const data = snapshot.val();
-                complaintsData = data || {};
-                renderComplaints();
-            });
-        }
-
-        // --- DATA ENTRY & PARSING ---
         document.getElementById('expressInput').addEventListener('input', (e) => {
             const text = e.target.value.toLowerCase();
             if (/cash/.test(text)) setPaymentMode('CASH', document.querySelectorAll('.pill')[0]);
@@ -507,16 +530,23 @@
             else if (/card|swipe/.test(text)) setPaymentMode('CARD', document.querySelectorAll('.pill')[2]);
         });
 
+        // ==================== CATEGORY PARSER ====================
         function parseCategory(text) {
             text = text.toLowerCase();
-            if (/food|dining|dinner|lunch|breakfast|swiggy|zomato|grocery|restaurant/.test(text)) return 'Food & Dining';
+            if (/food|dining|dinner|lunch|breakfast|swiggy|zomato|grocery|restaurant|kitkat|chocolate|snack|tea|coffee|juice/.test(text)) return 'Food & Dining';
             if (/petrol|fuel|transport|car|bike|uber|ola|maintenance|service/.test(text)) return 'Transport & Maintenance';
             if (/grooming|salon|hair|spa|makeup|clothes|shopping/.test(text)) return 'Personal Grooming';
             if (/bill|utility|electricity|wifi|recharge|rent/.test(text)) return 'Bills & Utilities';
             return 'General';
         }
 
+        // ==================== SUBMIT EXPENSE ====================
         function submitExpense() {
+            if (!isFirebaseReady) {
+                showError('Firebase not connected. Check internet and refresh.');
+                return;
+            }
+
             const statement = document.getElementById('expressInput').value.trim();
             if(!statement) return;
 
@@ -541,25 +571,28 @@
                 timestamp: timestamp
             };
 
-            const push = window.firebasePush;
-            const db = window.firebaseDB;
-            const ref = window.firebaseRef;
-            push(ref(db, 'krishna_family_vault_2026_final/expenses'), newExpense);
-
-            document.getElementById('expressInput').value = '';
-            document.getElementById('txDate').valueAsDate = new Date();
+            expensesRef.push(newExpense)
+                .then(() => {
+                    showToast('Transaction saved!');
+                    document.getElementById('expressInput').value = '';
+                    document.getElementById('txDate').valueAsDate = new Date();
+                })
+                .catch((err) => {
+                    console.error('Save error:', err);
+                    showError('Save failed: ' + err.message);
+                });
         }
 
+        // ==================== DELETE EXPENSE ====================
         function deleteExpense(id) {
             if(confirm("Permanently delete this transaction?")) {
-                const remove = window.firebaseRemove;
-                const db = window.firebaseDB;
-                const ref = window.firebaseRef;
-                remove(ref(db, 'krishna_family_vault_2026_final/expenses/' + id));
+                expensesRef.child(id).remove()
+                    .then(() => showToast('Deleted'))
+                    .catch((err) => showError('Delete failed: ' + err.message));
             }
         }
 
-        // --- EDIT FUNCTIONALITY ---
+        // ==================== EDIT EXPENSE ====================
         function openEditModal(id) {
             const tx = expensesData[id];
             if (!tx) return;
@@ -595,50 +628,52 @@
             const category = parseCategory(statement);
             const timestamp = dateVal ? new Date(dateVal + 'T12:00:00').toISOString() : new Date().toISOString();
 
-            const update = window.firebaseUpdate;
-            const db = window.firebaseDB;
-            const ref = window.firebaseRef;
-
-            update(ref(db, 'krishna_family_vault_2026_final/expenses/' + editingId), {
+            expensesRef.child(editingId).update({
                 statement: statement,
                 amount: amount,
                 category: category,
                 mode: mode,
                 paidBy: paidBy,
                 timestamp: timestamp
-            });
-
-            closeEditModal();
+            })
+            .then(() => {
+                showToast('Updated!');
+                closeEditModal();
+            })
+            .catch((err) => showError('Update failed: ' + err.message));
         }
 
+        // ==================== COMPLAINTS ====================
         function submitComplaint() {
+            if (!isFirebaseReady) {
+                showError('Firebase not connected. Check internet and refresh.');
+                return;
+            }
+
             const txt = document.getElementById('complaintInput').value.trim();
             if (!txt) return;
 
-            const push = window.firebasePush;
-            const db = window.firebaseDB;
-            const ref = window.firebaseRef;
-
-            push(ref(db, 'krishna_family_vault_2026_final/complaints'), {
+            complaintsRef.push({
                 text: txt,
                 name: currentUser.name,
                 completed: false,
                 timestamp: new Date().toISOString()
+            })
+            .then(() => {
+                showToast('Complaint posted!');
+                document.getElementById('complaintInput').value = '';
+            })
+            .catch((err) => {
+                console.error('Complaint error:', err);
+                showError('Post failed: ' + err.message);
             });
-            document.getElementById('complaintInput').value = '';
         }
 
         function toggleComplaintComplete(id) {
             const tx = complaintsData[id];
             if (!tx) return;
-
-            const update = window.firebaseUpdate;
-            const db = window.firebaseDB;
-            const ref = window.firebaseRef;
-
-            update(ref(db, 'krishna_family_vault_2026_final/complaints/' + id), {
-                completed: !tx.completed
-            });
+            complaintsRef.child(id).update({ completed: !tx.completed })
+                .catch((err) => console.error(err));
         }
 
         function deleteComplaint(id) {
@@ -648,14 +683,13 @@
                 return;
             }
             if(confirm("Delete this completed complaint?")) {
-                const remove = window.firebaseRemove;
-                const db = window.firebaseDB;
-                const ref = window.firebaseRef;
-                remove(ref(db, 'krishna_family_vault_2026_final/complaints/' + id));
+                complaintsRef.child(id).remove()
+                    .then(() => showToast('Deleted'))
+                    .catch((err) => showError('Delete failed: ' + err.message));
             }
         }
 
-        // --- RENDERING ENGINE ---
+        // ==================== RENDER APP ====================
         function renderApp() {
             const txs = Object.entries(expensesData)
                 .map(([id, data]) => ({ id, ...data }))
@@ -674,12 +708,13 @@
             let filteredListHTML = '';
 
             txs.forEach((tx, index) => {
-                const amt = parseFloat(tx.amount);
+                const amt = parseFloat(tx.amount) || 0;
                 const txDate = new Date(tx.timestamp);
 
                 totalSpent += amt;
                 if(modes[tx.mode] !== undefined) modes[tx.mode] += amt;
                 if(categories[tx.category] !== undefined) categories[tx.category] += amt;
+                else categories['General'] += amt;
                 users[tx.name] = (users[tx.name] || 0) + amt;
 
                 const diffTime = now - txDate;
@@ -694,15 +729,15 @@
                     <div class="ledger-item">
                         <div class="item-details">
                             <h4>${tx.statement}</h4>
-                            <p>${tx.name} (${tx.role}) • Paid by: <b>${tx.paidBy || tx.name || 'N/A'}</b> • ${txDate.toLocaleString([], {month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'})}</p>
+                            <p>${tx.name} (${tx.role}) &bull; Paid by: <b>${tx.paidBy || tx.name || 'N/A'}</b> &bull; ${txDate.toLocaleString([], {month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'})}</p>
                             <span class="badge">${tx.category}</span>
                             <span class="badge badge-gold">${tx.mode}</span>
                         </div>
                         <div class="item-meta">
-                            <div class="item-amount">₹${amt.toFixed(0)}</div>
+                            <div class="item-amount">Rs ${amt.toFixed(0)}</div>
                             <div class="action-btns">
-                                <button class="edit-btn" onclick="openEditModal('${tx.id}')" title="Edit">✏️</button>
-                                <button class="trash-btn" onclick="deleteExpense('${tx.id}')" title="Delete">🗑</button>
+                                <button class="edit-btn" onclick="openEditModal('${tx.id}')" title="Edit">&#9998;</button>
+                                <button class="trash-btn" onclick="deleteExpense('${tx.id}')" title="Delete">&#128465;</button>
                             </div>
                         </div>
                     </div>
@@ -715,7 +750,7 @@
                 }
             });
 
-            document.getElementById('globalTotalSpent').innerText = `₹${totalSpent.toLocaleString()}`;
+            document.getElementById('globalTotalSpent').innerText = 'Rs ' + totalSpent.toLocaleString();
             document.getElementById('mainLedgerList').innerHTML = mainListHTML || '<div class="empty-state">No transactions logged yet.</div>';
 
             document.getElementById('modeAnalyticsGrid').innerHTML = Object.keys(modes).map(mode => {
@@ -723,7 +758,7 @@
                 return `
                     <div class="stat-card">
                         <div class="stat-title">${mode}</div>
-                        <div class="stat-value">₹${modes[mode].toLocaleString()}</div>
+                        <div class="stat-value">Rs ${modes[mode].toLocaleString()}</div>
                         <div class="stat-sub">${pct}% of Total</div>
                         <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
                     </div>
@@ -735,17 +770,17 @@
                 return `
                     <div class="stat-card">
                         <div class="stat-title">${cat}</div>
-                        <div class="stat-value">₹${categories[cat].toLocaleString()}</div>
+                        <div class="stat-value">Rs ${categories[cat].toLocaleString()}</div>
                         <div class="stat-sub">${pct}%</div>
                         <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
                     </div>
                 `;
             }).join('');
 
-            document.getElementById('statToday').innerText = `₹${timeStats.today.toLocaleString()}`;
-            document.getElementById('statWeek').innerText = `₹${timeStats.week.toLocaleString()}`;
-            document.getElementById('statMonth').innerText = `₹${timeStats.month.toLocaleString()}`;
-            document.getElementById('statYear').innerText = `₹${timeStats.year.toLocaleString()}`;
+            document.getElementById('statToday').innerText = 'Rs ' + timeStats.today.toLocaleString();
+            document.getElementById('statWeek').innerText = 'Rs ' + timeStats.week.toLocaleString();
+            document.getElementById('statMonth').innerText = 'Rs ' + timeStats.month.toLocaleString();
+            document.getElementById('statYear').innerText = 'Rs ' + timeStats.year.toLocaleString();
 
             if (filterDateStr) {
                 document.getElementById('filteredLedgerList').innerHTML = filteredListHTML || '<div class="empty-state">No entries for this date.</div>';
@@ -756,11 +791,12 @@
             document.getElementById('standingsGrid').innerHTML = Object.keys(users).sort((a,b)=> users[b]-users[a]).map(user => `
                 <div class="stat-card" style="border-color: var(--gold);">
                     <div class="stat-title" style="color: white; font-size: 1rem;">${user}</div>
-                    <div class="stat-value">₹${users[user].toLocaleString()}</div>
+                    <div class="stat-value">Rs ${users[user].toLocaleString()}</div>
                 </div>
             `).join('') || '<div class="empty-state" style="grid-column: span 2;">No data available.</div>';
         }
 
+        // ==================== RENDER COMPLAINTS ====================
         function renderComplaints() {
             const arr = Object.entries(complaintsData).sort((a, b) => new Date(b[1].timestamp) - new Date(a[1].timestamp));
             document.getElementById('complaintsList').innerHTML = arr.map(([id, c]) => {
@@ -769,7 +805,7 @@
                 return `
                 <div class="message-card" style="${doneStyle}">
                     <div class="message-header">
-                        <span><b>${c.name}</b> ${isDone ? '&#9989; <span style="color:var(--gold)">COMPLETED</span>' : ''}</span>
+                        <span><b>${c.name}</b> ${isDone ? '<span style="color:var(--gold)">&#9989; COMPLETED</span>' : ''}</span>
                         <span>${new Date(c.timestamp).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
                     </div>
                     <div class="message-body">${c.text}</div>
@@ -784,6 +820,7 @@
             `}).join('') || '<div class="empty-state">No grievances logged yet. All is peaceful.</div>';
         }
 
+        // ==================== INIT ====================
         window.onload = checkIdentity;
     </script>
 </body>
