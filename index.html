@@ -160,6 +160,7 @@
             color: white; border-radius: 8px; font-size: 1.1rem; margin-bottom: 20px; outline: none;
         }
     </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -218,6 +219,15 @@
                         <div class="pill active" onclick="setPaymentMode('CASH', this)">CASH</div>
                         <div class="pill" onclick="setPaymentMode('UPI', this)">UPI</div>
                         <div class="pill" onclick="setPaymentMode('CARD', this)">CARD</div>
+                    </div>
+                    <div class="input-group" style="margin-bottom:15px;text-align:left">
+                        <label style="display:block;color:var(--gold);margin-bottom:8px;font-size:0.9rem">Paid By</label>
+                        <select id="paidBy" style="width:100%;padding:12px;background:rgba(0,0,0,0.5);border:1px solid #444;color:white;border-radius:6px;outline:none;font-size:1rem">
+                            <option value="AJIT">AJIT</option>
+                            <option value="SONALI">SONALI</option>
+                            <option value="TANVI">TANVI</option>
+                            <option value="KRISHNA">KRISHNA</option>
+                        </select>
                     </div>
                     <button class="btn" onclick="submitExpense()">Log Secure Transaction</button>
                 </div>
@@ -469,7 +479,7 @@
                     <div class="ledger-item">
                         <div class="item-details">
                             <h4>${tx.statement}</h4>
-                            <p>${tx.name} (${tx.role}) • ${txDate.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</p>
+                            <p>${tx.name} (${tx.role}) • Paid by: <b>${tx.paidBy || 'N/A'}</b> • ${txDate.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</p>
                             <span class="badge">${tx.category}</span>
                             <span class="badge" style="background:var(--gold); color:black;">${tx.mode}</span>
                         </div>
@@ -540,16 +550,26 @@
         }
 
         function renderComplaints() {
-            const arr = Object.values(complaintsData).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            document.getElementById('complaintsList').innerHTML = arr.map(c => `
-                <div class="message-card">
+            const arr = Object.entries(complaintsData).sort((a, b) => new Date(b[1].timestamp) - new Date(a[1].timestamp));
+            document.getElementById('complaintsList').innerHTML = arr.map(([id, c]) => {
+                const isDone = c.completed;
+                const doneStyle = isDone ? 'opacity:0.5;text-decoration:line-through' : '';
+                return `
+                <div class="message-card" style="${doneStyle}">
                     <div class="message-header">
-                        <span><b>${c.name}</b></span>
+                        <span><b>${c.name}</b> ${isDone ? '&#9989; <span style="color:var(--gold)">COMPLETED</span>' : ''}</span>
                         <span>${new Date(c.timestamp).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
                     </div>
                     <div class="message-body">${c.text}</div>
+                    <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
+                        <label style="cursor:pointer;display:flex;align-items:center;gap:6px;font-size:0.85rem;color:var(--text-muted)">
+                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleComplaintComplete('${id}')" style="cursor:pointer;width:16px;height:16px;accent-color:var(--gold)">
+                            Mark as Completed
+                        </label>
+                        ${isDone ? `<button onclick="deleteComplaint('${id}')" style="margin-left:auto;background:rgba(255,68,68,0.15);border:1px solid rgba(255,68,68,0.3);color:var(--danger);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem">&#128465; Delete</button>` : ''}
+                    </div>
                 </div>
-            `).join('') || '<p style="color:var(--text-muted);">No grievances logged yet. All is peaceful.</p>';
+            `}).join('') || '<p style="color:var(--text-muted);">No grievances logged yet. All is peaceful.</p>';
         }
 
         // Initialize App check on load
@@ -557,5 +577,4 @@
     </script>
 </body>
 </html>
-
 
