@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Family Vault</title>
+    <title>Premium Connected Family Vault</title>
+    <!-- Stable Cloud Database Driver Layer -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #0b0c10;
@@ -15,7 +17,6 @@
             --danger: #ff4a4a;
             --border: #222632;
             --success: #2ec4b6;
-            --payment-badge: #007bff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -28,7 +29,7 @@
 
         .card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
         
-        /* Setup Profile View */
+        /* Device Profile Login View */
         #profileScreen { text-align: center; padding: 40px 20px; }
         select, input[type="text"], input[type="number"], button {
             width: 100%; background: #1f2330; color: white; border: 1px solid #2d3345;
@@ -37,7 +38,7 @@
         button { background: var(--accent); color: black; font-weight: bold; cursor: pointer; border: none; margin-bottom: 0; }
         button:hover { background: var(--accent-hover); }
 
-        /* Dashboard Items */
+        /* Metrics Dashboards */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .stat-box { text-align: center; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border); }
         .stat-box h2 { color: var(--accent); font-size: 1.8rem; margin-top: 5px; }
@@ -51,7 +52,7 @@
         .input-group select { margin-bottom: 0; width: 110px; font-size: 0.9rem; padding: 10px; }
         .input-group button { width: 60px; padding: 0; font-size: 1.2rem; }
 
-        /* Ledger Core Lists */
+        /* Global Dynamic Vault Ledger Items */
         .ledger-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .ledger-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1d29; border-radius: 8px; border-left: 4px solid var(--accent); }
         .ledger-left { display: flex; flex-direction: column; gap: 4px; }
@@ -77,9 +78,10 @@
 
     <div class="container">
         
+        <!-- DEVICE LOCK PROFILE LOGIN -->
         <div id="profileScreen" class="card">
-            <h2 style="color: var(--accent); margin-bottom: 10px;">🔒 Premium Family Vault</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">Select your identity profile to unlock the operational dashboard.</p>
+            <h2 style="color: var(--accent); margin-bottom: 10px;">🔒 Connected Family Vault</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">Select your user profile to link this device to the shared pool.</p>
             
             <select id="profileSelector">
                 <option value="Papa">Papa</option>
@@ -87,9 +89,10 @@
                 <option value="Brother">Brother</option>
                 <option value="Sister">Sister</option>
             </select>
-            <button onclick="lockAndLoginDevice()">Unlock Dashboard</button>
+            <button onclick="lockAndLoginDevice()">Unlock Shared Dashboard</button>
         </div>
 
+        <!-- SHARED INTERCONNECTED DASHBOARD HUB -->
         <div id="mainDashboard" style="display: none;">
             
             <div class="header">
@@ -97,11 +100,12 @@
                 <div class="user-badge" id="activeUserDisplay">👤 Profile</div>
             </div>
 
+            <!-- INTERCONNECTED LIVE BUDGET LIMIT MANAGEMENT -->
             <div class="card">
-                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">📅 Monthly Limits Planner</h3>
+                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">📅 Monthly Shared Limits</h3>
                 <div class="input-group" style="margin-bottom: 15px;">
-                    <input type="number" id="monthlyBudgetInput" placeholder="Set Monthly Budget Limit (e.g. 30000)">
-                    <button style="width: auto; padding: 0 15px; font-size: 0.9rem;" onclick="saveMonthlyBudget()">Set</button>
+                    <input type="number" id="monthlyBudgetInput" placeholder="Set Monthly Budget Limit (e.g. 40000)">
+                    <button style="width: auto; padding: 0 15px; font-size: 0.9rem;" onclick="saveMonthlyBudget()">Set Global</button>
                 </div>
                 <div class="stats-grid">
                     <div class="stat-box">
@@ -109,7 +113,7 @@
                         <h2 id="globalTotalDisplay">₹0</h2>
                     </div>
                     <div class="stat-box">
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">BUDGET BALANCES REMAINING</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">SHARED BUDGET REMAINING</span>
                         <h2 id="budgetRemainingDisplay">₹0</h2>
                     </div>
                 </div>
@@ -118,62 +122,82 @@
                 </div>
             </div>
 
+            <!-- NATURAL STATEMENT EXECUTOR ENGINE -->
             <div class="card">
                 <h3 style="font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; color: var(--text-muted);">💬 Express Transaction Logger</h3>
                 <div class="input-row">
                     <div class="input-group">
-                        <input type="text" id="expenseInput" placeholder="Type statement (e.g., 500 dinner upi)...">
+                        <input type="text" id="expenseInput" placeholder="Type info (e.g., 500 dinner upi)...">
                         <select id="paymentMethodSelector">
-                            <option value="Auto">🔄 Auto</option>
-                            <option value="UPI">💳 UPI</option>
-                            <option value="Cash">💵 Cash</option>
-                            <option value="Card">🪪 Card</option>
-                            <option value="Other">🌐 Other</option>
+                            <option value="Auto">Auto Detect</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Card</option>
+                            <option value="Other">Other</option>
                         </select>
                         <button onclick="handleIncomingLog()">➤</button>
                     </div>
                 </div>
             </div>
 
+            <!-- CLOUD-SYNCED DISTRIBUTION METRICS -->
             <div class="card">
-                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--accent); margin-bottom: 12px;">📊 Structural Category Statistics</h3>
+                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--accent); margin-bottom: 12px;">📊 Live Distribution Statistics</h3>
                 <div class="chart-box" id="statsChartDistribution"></div>
             </div>
 
+            <!-- INTERCONNECTED LIVE VAULT STREAM REPOSITORY -->
             <div class="card">
-                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">📜 Live Vault Storage Ledger</h3>
-                <div class="ledger-list" id="globalLedgerList"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted);">📜 Shared Sync Stream Ledger</h3>
+                    <span onclick="syncCloudVaultStream()" style="cursor: pointer; color: var(--accent); font-size: 0.75rem; font-weight: bold;">🔄 FORCE SYNC</span>
+                </div>
+                <div class="ledger-list" id="globalLedgerList">
+                    <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center;">Connecting to central family stream...</p>
+                </div>
             </div>
 
-            <div class="reset-link" onclick="logoutDeviceIdentity()">Clear Cached Device Lock Identity</div>
+            <div class="reset-link" onclick="logoutDeviceIdentity()">Reset This Device's Identity Lock</div>
 
         </div>
     </div>
 
     <script>
+        // Secure Cloud Access Configuration Routing
+        const CLOUD_URL = "https://ffgagiqsrpvpgeexzhnh.supabase.co"; 
+        const CLOUD_KEY = "sb_publishable_P_J4_hLf-FoBv1fDgnEtdg_eKXFChGv";
+        
+        // Zero-crash safe wrapper client initialization
+        let centralCloudClient = null;
+        try {
+            centralCloudClient = supabase.createClient(CLOUD_URL, CLOUD_KEY);
+        } catch(e) {
+            console.error("Cloud driver mapping sequence delayed.");
+        }
+
         let activeUser = "";
-        let transactions = JSON.parse(localStorage.getItem("premium_vault_v3_logs")) || [];
-        let globalBudget = parseFloat(localStorage.getItem("premium_vault_v3_budget")) || 40000;
+        let memoryStreamCache = [];
+        let globalBudget = parseFloat(localStorage.getItem("vault_cloud_shared_budget")) || 40000;
 
         window.onload = function() {
             document.getElementById('monthlyBudgetInput').value = globalBudget;
-            let currentDeviceLock = localStorage.getItem("premium_device_lock_v3");
-            if(currentDeviceLock) {
-                activeUser = currentDeviceLock;
+            let currentLock = localStorage.getItem("vault_device_lock_v4");
+            if(currentLock) {
+                activeUser = currentLock;
                 showDashboardHub();
             }
         }
 
         function lockAndLoginDevice() {
-            let choice = document.getElementById('profileSelector').value;
-            localStorage.setItem("premium_device_lock_v3", choice);
-            activeUser = choice;
+            let userChoice = document.getElementById('profileSelector').value;
+            localStorage.setItem("vault_device_lock_v4", userChoice);
+            activeUser = userChoice;
             showDashboardHub();
         }
 
         function logoutDeviceIdentity() {
-            if(confirm("Reset current profile device lock configuration?")) {
-                localStorage.removeItem("premium_device_lock_v3");
+            if(confirm("Disconnect this device identity profile?")) {
+                localStorage.removeItem("vault_device_lock_v4");
                 location.reload();
             }
         }
@@ -182,107 +206,123 @@
             document.getElementById('activeUserDisplay').innerText = "👤 " + activeUser;
             document.getElementById('profileScreen').style.display = "none";
             document.getElementById('mainDashboard').style.display = "block";
-            refreshDashboardUI();
+            syncCloudVaultStream();
+            
+            // Auto refresh from cloud database every 7 seconds to catch text typed on other devices
+            setInterval(syncCloudVaultStream, 7000);
         }
 
         function saveMonthlyBudget() {
-            let limitVal = parseFloat(document.getElementById('monthlyBudgetInput').value) || 0;
-            if(limitVal > 0) {
-                globalBudget = limitVal;
-                localStorage.setItem("premium_vault_v3_budget", globalBudget);
+            let budgetVal = parseFloat(document.getElementById('monthlyBudgetInput').value) || 0;
+            if(budgetVal > 0) {
+                globalBudget = budgetVal;
+                localStorage.setItem("vault_cloud_shared_budget", globalBudget);
                 refreshDashboardUI();
             }
         }
 
-        // Semantic Intent Extraction System + Payment Method Detection
-        function parsedSentenceEngine(sentence, selectedDropdownMethod) {
+        // Semantic Engine Extraction 
+        function parsedSentenceEngine(sentence, explicitPayMethod) {
             let lower = sentence.toLowerCase();
-            let numMatch = lower.match(/\d+/);
-            let extractedAmount = numMatch ? parseFloat(numMatch[0]) : 0;
+            let numericCapture = lower.match(/\d+/);
+            let verifiedAmount = numericCapture ? parseFloat(numericCapture[0]) : 0;
             
-            // 1. Detect Category
-            let targetCategory = "Other / General";
+            let targetedCategory = "Other / General";
             if (lower.includes("petrol") || lower.includes("fuel") || lower.includes("bike") || lower.includes("car") || lower.includes("travel") || lower.includes("auto")) {
-                targetCategory = "Transport & Fuel";
+                targetedCategory = "Transport & Fuel";
             } else if (lower.includes("food") || lower.includes("dinner") || lower.includes("grocery") || lower.includes("restaurant") || lower.includes("swiggy") || lower.includes("zomato") || lower.includes("cafe")) {
-                targetCategory = "Food & Dining";
+                targetedCategory = "Food & Dining";
             } else if (lower.includes("nail") || lower.includes("makeup") || lower.includes("salon") || lower.includes("clothes") || lower.includes("shopping")) {
-                targetCategory = "Personal Grooming";
+                targetedCategory = "Personal Grooming";
             } else if (lower.includes("bill") || lower.includes("rent") || lower.includes("electricity") || lower.includes("recharge") || lower.includes("wifi")) {
-                targetCategory = "Bills & Utilities";
+                targetedCategory = "Bills & Utilities";
             }
 
-            // 2. Detect Payment Method
-            let targetPayment = "Other";
-            if (selectedDropdownMethod !== "Auto") {
-                targetPayment = selectedDropdownMethod;
+            let targetedPayment = "Other";
+            if (explicitPayMethod !== "Auto") {
+                targetedPayment = explicitPayMethod;
             } else {
-                if (lower.includes("upi") || lower.includes("gpay") || lower.includes("phonepe") || lower.includes("paytm") || lower.includes("online")) {
-                    targetPayment = "UPI";
-                } else if (lower.includes("cash") || lower.includes("rokh") || lower.includes("haath")) {
-                    targetPayment = "Cash";
-                } else if (lower.includes("card") || lower.includes("debit") || lower.includes("credit") || lower.includes("atm")) {
-                    targetPayment = "Card";
+                if (lower.includes("upi") || lower.includes("gpay") || lower.includes("phonepe") || lower.includes("paytm")) {
+                    targetedPayment = "UPI";
+                } else if (lower.includes("cash") || lower.includes("rokh")) {
+                    targetedPayment = "Cash";
+                } else if (lower.includes("card") || lower.includes("debit") || lower.includes("credit")) {
+                    targetedPayment = "Card";
                 }
             }
-
-            return { amount: extractedAmount, category: targetCategory, payment: targetPayment };
+            return { amount: verifiedAmount, category: targetedCategory, payment: targetedPayment };
         }
 
-        function handleIncomingLog() {
+        async function handleIncomingLog() {
             let inputField = document.getElementById('expenseInput');
-            let dropdownPay = document.getElementById('paymentMethodSelector').value;
-            let textVal = inputField.value.trim();
-            if(!textVal) return;
+            let dropPayment = document.getElementById('paymentMethodSelector').value;
+            let textValue = inputField.value.trim();
+            if(!textValue) return;
 
-            let result = parsedSentenceEngine(textVal, dropdownPay);
-            if(result.amount <= 0) {
-                alert("Could not extract a valid number. Try typing: '500 dinner upi'");
+            let extraction = parsedSentenceEngine(textValue, dropPayment);
+            if(extraction.amount <= 0) {
+                alert("Could not extract a valid amount. Example: '500 dinner upi'");
                 return;
             }
 
-            let logObj = {
-                id: Date.now(),
-                user: activeUser,
-                text: textVal, 
-                category: result.category,
-                payment: result.payment,
-                amount: result.amount
-            };
+            if(!centralCloudClient) {
+                alert("Cloud engine interface disconnect error.");
+                return;
+            }
 
-            transactions.unshift(logObj);
-            saveDataEngine();
-            inputField.value = "";
-            document.getElementById('paymentMethodSelector').value = "Auto"; // Reset
-            refreshDashboardUI();
+            // Fire securely into central cloud network
+            const { error } = await centralCloudClient
+                .from('family_expenses')
+                .insert([{ 
+                    user_name: activeUser, 
+                    category: extraction.category, 
+                    amount: extraction.amount,
+                    payment: extraction.payment, // Interconnected mapping support
+                    text: textValue 
+                }]);
+
+            if (error) {
+                alert("Synchronizer latency error: " + error.message);
+            } else {
+                inputField.value = "";
+                document.getElementById('paymentMethodSelector').value = "Auto";
+                syncCloudVaultStream(); 
+            }
         }
 
-        // Erase text footprints safely but keep active numeric balance sheets & analytics functioning
-        function deleteHistoryLogItem(idTarget) {
-            transactions = transactions.map(item => {
-                if(item.id === idTarget) {
-                    return {
-                        id: item.id,
-                        user: item.user,
-                        text: "[Chat Log Entry Erased]", 
-                        category: item.category,  
-                        payment: item.payment,
-                        amount: item.amount       
-                    };
-                }
-                return item;
-            });
-            saveDataEngine();
-            refreshDashboardUI();
+        // Deletes log context footprint on all devices while holding category analytics perfect
+        async function deleteHistoryLogItem(targetId) {
+            if(!centralCloudClient) return;
+
+            const { error } = await centralCloudClient
+                .from('family_expenses')
+                .update({ text: "[Chat Log Entry Erased]" })
+                .eq('id', targetId);
+
+            if(error) {
+                alert("Failed cloud execution request.");
+            } else {
+                syncCloudVaultStream();
+            }
         }
 
-        function saveDataEngine() {
-            localStorage.setItem("premium_vault_v3_logs", JSON.stringify(transactions));
+        async function syncCloudVaultStream() {
+            if(!centralCloudClient) return;
+
+            const { data, error } = await centralCloudClient
+                .from('family_expenses')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (!error && data) {
+                memoryStreamCache = data;
+                refreshDashboardUI();
+            }
         }
 
         function refreshDashboardUI() {
-            let totalSpent = 0;
-            let trackingMap = {
+            let calculatedSpent = 0;
+            let mappingChartStructure = {
                 "Food & Dining": 0,
                 "Transport & Fuel": 0,
                 "Personal Grooming": 0,
@@ -290,69 +330,71 @@
                 "Other / General": 0
             };
 
-            let listContainer = document.getElementById('globalLedgerList');
-            listContainer.innerHTML = "";
+            let ledgerContainer = document.getElementById('globalLedgerList');
+            ledgerContainer.innerHTML = "";
 
-            if(transactions.length === 0) {
-                listContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.95rem; text-align:center; padding:10px;">Vault Storage Empty.</p>`;
+            if(memoryStreamCache.length === 0) {
+                ledgerContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.95rem; text-align:center; padding:10px;">Interconnected stream empty.</p>`;
             }
 
-            transactions.forEach(item => {
-                totalSpent += item.amount;
-                if(trackingMap[item.category] !== undefined) {
-                    trackingMap[item.category] += item.amount;
+            memoryStreamCache.forEach(item => {
+                let cost = parseFloat(item.amount) || 0;
+                calculatedSpent += cost;
+                
+                if(mappingChartStructure[item.category] !== undefined) {
+                    mappingChartStructure[item.category] += cost;
                 } else {
-                    trackingMap["Other / General"] += item.amount;
+                    mappingChartStructure["Other / General"] += cost;
                 }
 
-                // Check default if legacy item has no payment property
-                let displayPayment = item.payment ? item.payment : "Other";
+                let cleanTextDisplay = item.text ? item.text : `${cost} logged under ${item.category}`;
+                let modeOfPayment = item.payment ? item.payment : "Other";
 
-                listContainer.innerHTML += `
+                ledgerContainer.innerHTML += `
                     <div class="ledger-item">
                         <div class="ledger-left">
                             <div>
-                                <span class="member-tag">[${item.user}]</span>
-                                <span class="chat-text">${item.text}</span>
+                                <span class="member-tag">[${item.user_name}]</span>
+                                <span class="chat-text">${cleanTextDisplay}</span>
                             </div>
                             <div class="badge-container">
                                 <span class="cat-badge">${item.category}</span>
-                                <span class="pay-badge">💳 ${displayPayment}</span>
+                                <span class="pay-badge">💳 ${modeOfPayment}</span>
                             </div>
                         </div>
                         <div class="amount-right">
-                            <span class="amount-tag">₹${item.amount}</span>
+                            <span class="amount-tag">₹${cost}</span>
                             <span class="delete-btn" onclick="deleteHistoryLogItem(${item.id})">🗑️</span>
                         </div>
                     </div>
                 `;
             });
 
-            // Update Primary Screen Displays
-            document.getElementById('globalTotalDisplay').innerText = "₹" + totalSpent;
-            let remainingBalance = globalBudget - totalSpent;
-            let displayField = document.getElementById('budgetRemainingDisplay');
-            displayField.innerText = "₹" + remainingBalance;
+            // Refresh Financial Board Computations
+            document.getElementById('globalTotalDisplay').innerText = "₹" + calculatedSpent;
+            let netRemaining = globalBudget - calculatedSpent;
+            let remainderTextBox = document.getElementById('budgetRemainingDisplay');
+            remainderTextBox.innerText = "₹" + netRemaining;
             
-            if(remainingBalance < 0) displayField.style.color = "var(--danger)";
-            else displayField.style.color = "var(--success)";
+            if(netRemaining < 0) remainderTextBox.style.color = "var(--danger)";
+            else remainderTextBox.style.color = "var(--success)";
 
-            let visualPct = Math.min((totalSpent / globalBudget) * 100, 100);
-            document.getElementById('budgetProgressBar').style.width = visualPct + "%";
+            let progressPct = Math.min((calculatedSpent / globalBudget) * 100, 100);
+            document.getElementById('budgetProgressBar').style.width = progressPct + "%";
 
-            // Render Premium Distributions Bars
-            let chartsContainer = document.getElementById('statsChartDistribution');
-            chartsContainer.innerHTML = "";
-            for(let key in trackingMap) {
-                let amt = trackingMap[key];
-                let pct = totalSpent > 0 ? (amt / totalSpent) * 100 : 0;
-                chartsContainer.innerHTML += `
+            // Render Dynamic Interconnected Distribution Analytics Lines
+            let chartBoxContainer = document.getElementById('statsChartDistribution');
+            chartBoxContainer.innerHTML = "";
+            for(let key in mappingChartStructure) {
+                let currentAmt = mappingChartStructure[key];
+                let structuralPct = calculatedSpent > 0 ? (currentAmt / calculatedSpent) * 100 : 0;
+                chartBoxContainer.innerHTML += `
                     <div class="chart-row">
                         <span style="width: 120px; text-overflow:ellipsis; overflow:hidden;">${key}</span>
                         <div class="chart-bar-bg">
-                            <div class="chart-bar-fill" style="width: ${pct}%"></div>
+                            <div class="chart-bar-fill" style="width: ${structuralPct}%"></div>
                         </div>
-                        <span style="font-weight:bold; width:70px; text-align:right;">₹${amt}</span>
+                        <span style="font-weight:bold; width:60px; text-align:right;">₹${currentAmt}</span>
                     </div>
                 `;
             }
