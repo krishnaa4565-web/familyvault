@@ -15,6 +15,7 @@
             --danger: #ff4a4a;
             --border: #222632;
             --success: #2ec4b6;
+            --payment-badge: #007bff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -44,8 +45,10 @@
         .progress-container { margin-top: 15px; background: #1f2330; border-radius: 8px; height: 10px; overflow: hidden; }
         .progress-bar { background: var(--accent); height: 100%; width: 0%; transition: width 0.4s ease; }
 
+        .input-row { display: flex; flex-direction: column; gap: 10px; }
         .input-group { display: flex; gap: 10px; }
-        .input-group input { margin-bottom: 0; }
+        .input-group input { margin-bottom: 0; flex-grow: 1; }
+        .input-group select { margin-bottom: 0; width: 110px; font-size: 0.9rem; padding: 10px; }
         .input-group button { width: 60px; padding: 0; font-size: 1.2rem; }
 
         /* Ledger Core Lists */
@@ -54,7 +57,11 @@
         .ledger-left { display: flex; flex-direction: column; gap: 4px; }
         .member-tag { font-weight: bold; font-size: 0.85rem; color: var(--accent); }
         .chat-text { font-size: 0.95rem; color: var(--text-main); }
-        .cat-badge { background: #252a3a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--text-muted); width: max-content; }
+        
+        .badge-container { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+        .cat-badge { background: #252a3a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--text-muted); }
+        .pay-badge { background: rgba(0, 123, 255, 0.15); border: 1px solid rgba(0, 123, 255, 0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: #66b2ff; text-transform: uppercase; font-weight: bold; }
+        
         .amount-right { display: flex; align-items: center; gap: 12px; }
         .amount-tag { font-weight: bold; font-size: 1.1rem; color: var(--text-main); }
         .delete-btn { color: var(--danger); cursor: pointer; font-size: 1.1rem; opacity: 0.7; }
@@ -113,9 +120,18 @@
 
             <div class="card">
                 <h3 style="font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; color: var(--text-muted);">💬 Express Transaction Logger</h3>
-                <div class="input-group">
-                    <input type="text" id="expenseInput" placeholder="Type info (e.g., 500 dinner with family)...">
-                    <button onclick="handleIncomingLog()">➤</button>
+                <div class="input-row">
+                    <div class="input-group">
+                        <input type="text" id="expenseInput" placeholder="Type statement (e.g., 500 dinner upi)...">
+                        <select id="paymentMethodSelector">
+                            <option value="Auto">🔄 Auto</option>
+                            <option value="UPI">💳 UPI</option>
+                            <option value="Cash">💵 Cash</option>
+                            <option value="Card">🪪 Card</option>
+                            <option value="Other">🌐 Other</option>
+                        </select>
+                        <button onclick="handleIncomingLog()">➤</button>
+                    </div>
                 </div>
             </div>
 
@@ -126,4 +142,221 @@
 
             <div class="card">
                 <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">📜 Live Vault Storage Ledger</h3>
-                <div class="ledger-list"
+                <div class="ledger-list" id="globalLedgerList"></div>
+            </div>
+
+            <div class="reset-link" onclick="logoutDeviceIdentity()">Clear Cached Device Lock Identity</div>
+
+        </div>
+    </div>
+
+    <script>
+        let activeUser = "";
+        let transactions = JSON.parse(localStorage.getItem("premium_vault_v3_logs")) || [];
+        let globalBudget = parseFloat(localStorage.getItem("premium_vault_v3_budget")) || 40000;
+
+        window.onload = function() {
+            document.getElementById('monthlyBudgetInput').value = globalBudget;
+            let currentDeviceLock = localStorage.getItem("premium_device_lock_v3");
+            if(currentDeviceLock) {
+                activeUser = currentDeviceLock;
+                showDashboardHub();
+            }
+        }
+
+        function lockAndLoginDevice() {
+            let choice = document.getElementById('profileSelector').value;
+            localStorage.setItem("premium_device_lock_v3", choice);
+            activeUser = choice;
+            showDashboardHub();
+        }
+
+        function logoutDeviceIdentity() {
+            if(confirm("Reset current profile device lock configuration?")) {
+                localStorage.removeItem("premium_device_lock_v3");
+                location.reload();
+            }
+        }
+
+        function showDashboardHub() {
+            document.getElementById('activeUserDisplay').innerText = "👤 " + activeUser;
+            document.getElementById('profileScreen').style.display = "none";
+            document.getElementById('mainDashboard').style.display = "block";
+            refreshDashboardUI();
+        }
+
+        function saveMonthlyBudget() {
+            let limitVal = parseFloat(document.getElementById('monthlyBudgetInput').value) || 0;
+            if(limitVal > 0) {
+                globalBudget = limitVal;
+                localStorage.setItem("premium_vault_v3_budget", globalBudget);
+                refreshDashboardUI();
+            }
+        }
+
+        // Semantic Intent Extraction System + Payment Method Detection
+        function parsedSentenceEngine(sentence, selectedDropdownMethod) {
+            let lower = sentence.toLowerCase();
+            let numMatch = lower.match(/\d+/);
+            let extractedAmount = numMatch ? parseFloat(numMatch[0]) : 0;
+            
+            // 1. Detect Category
+            let targetCategory = "Other / General";
+            if (lower.includes("petrol") || lower.includes("fuel") || lower.includes("bike") || lower.includes("car") || lower.includes("travel") || lower.includes("auto")) {
+                targetCategory = "Transport & Fuel";
+            } else if (lower.includes("food") || lower.includes("dinner") || lower.includes("grocery") || lower.includes("restaurant") || lower.includes("swiggy") || lower.includes("zomato") || lower.includes("cafe")) {
+                targetCategory = "Food & Dining";
+            } else if (lower.includes("nail") || lower.includes("makeup") || lower.includes("salon") || lower.includes("clothes") || lower.includes("shopping")) {
+                targetCategory = "Personal Grooming";
+            } else if (lower.includes("bill") || lower.includes("rent") || lower.includes("electricity") || lower.includes("recharge") || lower.includes("wifi")) {
+                targetCategory = "Bills & Utilities";
+            }
+
+            // 2. Detect Payment Method
+            let targetPayment = "Other";
+            if (selectedDropdownMethod !== "Auto") {
+                targetPayment = selectedDropdownMethod;
+            } else {
+                if (lower.includes("upi") || lower.includes("gpay") || lower.includes("phonepe") || lower.includes("paytm") || lower.includes("online")) {
+                    targetPayment = "UPI";
+                } else if (lower.includes("cash") || lower.includes("rokh") || lower.includes("haath")) {
+                    targetPayment = "Cash";
+                } else if (lower.includes("card") || lower.includes("debit") || lower.includes("credit") || lower.includes("atm")) {
+                    targetPayment = "Card";
+                }
+            }
+
+            return { amount: extractedAmount, category: targetCategory, payment: targetPayment };
+        }
+
+        function handleIncomingLog() {
+            let inputField = document.getElementById('expenseInput');
+            let dropdownPay = document.getElementById('paymentMethodSelector').value;
+            let textVal = inputField.value.trim();
+            if(!textVal) return;
+
+            let result = parsedSentenceEngine(textVal, dropdownPay);
+            if(result.amount <= 0) {
+                alert("Could not extract a valid number. Try typing: '500 dinner upi'");
+                return;
+            }
+
+            let logObj = {
+                id: Date.now(),
+                user: activeUser,
+                text: textVal, 
+                category: result.category,
+                payment: result.payment,
+                amount: result.amount
+            };
+
+            transactions.unshift(logObj);
+            saveDataEngine();
+            inputField.value = "";
+            document.getElementById('paymentMethodSelector').value = "Auto"; // Reset
+            refreshDashboardUI();
+        }
+
+        // Erase text footprints safely but keep active numeric balance sheets & analytics functioning
+        function deleteHistoryLogItem(idTarget) {
+            transactions = transactions.map(item => {
+                if(item.id === idTarget) {
+                    return {
+                        id: item.id,
+                        user: item.user,
+                        text: "[Chat Log Entry Erased]", 
+                        category: item.category,  
+                        payment: item.payment,
+                        amount: item.amount       
+                    };
+                }
+                return item;
+            });
+            saveDataEngine();
+            refreshDashboardUI();
+        }
+
+        function saveDataEngine() {
+            localStorage.setItem("premium_vault_v3_logs", JSON.stringify(transactions));
+        }
+
+        function refreshDashboardUI() {
+            let totalSpent = 0;
+            let trackingMap = {
+                "Food & Dining": 0,
+                "Transport & Fuel": 0,
+                "Personal Grooming": 0,
+                "Bills & Utilities": 0,
+                "Other / General": 0
+            };
+
+            let listContainer = document.getElementById('globalLedgerList');
+            listContainer.innerHTML = "";
+
+            if(transactions.length === 0) {
+                listContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.95rem; text-align:center; padding:10px;">Vault Storage Empty.</p>`;
+            }
+
+            transactions.forEach(item => {
+                totalSpent += item.amount;
+                if(trackingMap[item.category] !== undefined) {
+                    trackingMap[item.category] += item.amount;
+                } else {
+                    trackingMap["Other / General"] += item.amount;
+                }
+
+                // Check default if legacy item has no payment property
+                let displayPayment = item.payment ? item.payment : "Other";
+
+                listContainer.innerHTML += `
+                    <div class="ledger-item">
+                        <div class="ledger-left">
+                            <div>
+                                <span class="member-tag">[${item.user}]</span>
+                                <span class="chat-text">${item.text}</span>
+                            </div>
+                            <div class="badge-container">
+                                <span class="cat-badge">${item.category}</span>
+                                <span class="pay-badge">💳 ${displayPayment}</span>
+                            </div>
+                        </div>
+                        <div class="amount-right">
+                            <span class="amount-tag">₹${item.amount}</span>
+                            <span class="delete-btn" onclick="deleteHistoryLogItem(${item.id})">🗑️</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Update Primary Screen Displays
+            document.getElementById('globalTotalDisplay').innerText = "₹" + totalSpent;
+            let remainingBalance = globalBudget - totalSpent;
+            let displayField = document.getElementById('budgetRemainingDisplay');
+            displayField.innerText = "₹" + remainingBalance;
+            
+            if(remainingBalance < 0) displayField.style.color = "var(--danger)";
+            else displayField.style.color = "var(--success)";
+
+            let visualPct = Math.min((totalSpent / globalBudget) * 100, 100);
+            document.getElementById('budgetProgressBar').style.width = visualPct + "%";
+
+            // Render Premium Distributions Bars
+            let chartsContainer = document.getElementById('statsChartDistribution');
+            chartsContainer.innerHTML = "";
+            for(let key in trackingMap) {
+                let amt = trackingMap[key];
+                let pct = totalSpent > 0 ? (amt / totalSpent) * 100 : 0;
+                chartsContainer.innerHTML += `
+                    <div class="chart-row">
+                        <span style="width: 120px; text-overflow:ellipsis; overflow:hidden;">${key}</span>
+                        <div class="chart-bar-bg">
+                            <div class="chart-bar-fill" style="width: ${pct}%"></div>
+                        </div>
+                        <span style="font-weight:bold; width:70px; text-align:right;">₹${amt}</span>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
