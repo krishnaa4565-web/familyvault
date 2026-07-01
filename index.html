@@ -390,11 +390,11 @@
     </div>
 
     <script>
-        // ==================== FIREBASE CONFIG ====================
+        // ==================== FIREBASE CONFIG - FIXED REGION URL ====================
         const firebaseConfig = {
             apiKey: "AIzaSyCoTYGbNmR-mIQpcnwzA2eI8Hnu9FBzISY",
             authDomain: "family-vault-f268d.firebaseapp.com",
-            databaseURL: "https://family-vault-f268d-default-rtdb.firebaseio.com",
+            databaseURL: "https://family-vault-f268d-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "family-vault-f268d",
             storageBucket: "family-vault-f268d.firebasestorage.app",
             messagingSenderId: "444906390570",
@@ -456,7 +456,6 @@
             document.getElementById('syncIndicator').style.display = 'flex';
 
             try {
-                // Check if firebase is loaded
                 if (typeof firebase === 'undefined') {
                     throw new Error('Firebase SDK not loaded. Check internet connection.');
                 }
@@ -466,7 +465,7 @@
                 expensesRef = db.ref("krishna_family_vault_2026_final/expenses");
                 complaintsRef = db.ref("krishna_family_vault_2026_final/complaints");
 
-                // Test connection with a simple read
+                // Test connection
                 db.ref('.info/connected').on('value', (snap) => {
                     const connected = snap.val();
                     const dot = document.getElementById('syncDot');
@@ -481,7 +480,6 @@
                     }
                 });
 
-                // Listen for data
                 expensesRef.on('value', (snapshot) => {
                     expensesData = snapshot.val() || {};
                     renderApp();
