@@ -4,7 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Premium Family Vault</title>
-    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <script type="module">
+        // Firebase SDK v11 - Modular
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCoTYGbNmR-mIQpcnwzA2eI8Hnu9FBzISY",
+            authDomain: "family-vault-f268d.firebaseapp.com",
+            databaseURL: "https://family-vault-f268d-default-rtdb.firebaseio.com",
+            projectId: "family-vault-f268d",
+            storageBucket: "family-vault-f268d.firebasestorage.app",
+            messagingSenderId: "444906390570",
+            appId: "1:444906390570:web:5bd667bf99dd7c60db6f53",
+            measurementId: "G-4P1LQK90W5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Expose to global for non-module scripts
+        window.firebaseDB = db;
+        window.firebaseRef = ref;
+        window.firebaseOnValue = onValue;
+        window.firebaseSet = set;
+        window.firebasePush = push;
+        window.firebaseRemove = remove;
+        window.firebaseUpdate = update;
+    </script>
     <style>
         :root {
             --bg: #0b0c10;
@@ -15,12 +42,13 @@
             --text: #ffffff;
             --text-muted: #888888;
             --danger: #ff4444;
+            --success: #4ade80;
             --nav-size: 70px;
             --sidebar-width: 250px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        
+
         body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
 
         /* --- LOGIN OVERLAY --- */
@@ -48,10 +76,25 @@
             cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
         .btn:hover { box-shadow: 0 0 15px var(--gold-glow); background: #f0c950; }
+        .btn-secondary {
+            background: transparent; color: var(--gold); border: 1px solid var(--gold);
+            padding: 10px 20px; font-size: 0.9rem; width: auto;
+        }
+        .btn-secondary:hover { background: var(--gold-dim); }
+        .btn-danger {
+            background: rgba(255,68,68,0.15); color: var(--danger); border: 1px solid rgba(255,68,68,0.3);
+            padding: 6px 14px; font-size: 0.8rem; width: auto;
+        }
+        .btn-danger:hover { background: rgba(255,68,68,0.3); }
+        .btn-success {
+            background: rgba(74,222,128,0.15); color: var(--success); border: 1px solid rgba(74,222,128,0.3);
+            padding: 6px 14px; font-size: 0.8rem; width: auto;
+        }
+        .btn-success:hover { background: rgba(74,222,128,0.3); }
 
         /* --- MAIN LAYOUT --- */
         #appContainer { display: none; height: 100vh; width: 100vw; }
-        
+
         /* Navigation */
         #navBar {
             background: var(--card); border-top: 1px solid var(--gold-dim);
@@ -87,22 +130,22 @@
         .view { display: none; animation: fadeIn 0.3s ease; max-width: 1000px; margin: 0 auto;}
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
+
         h2 { color: var(--gold); margin-bottom: 20px; font-weight: 400; border-bottom: 1px solid var(--gold-dim); padding-bottom: 10px;}
 
         /* VIEW 1: LIVE LEDGER */
         .ring-container {
-            height: 40vh; display: flex; align-items: center; justify-content: center;
+            height: 35vh; display: flex; align-items: center; justify-content: center;
             flex-direction: column; margin-bottom: 20px;
         }
         .giant-ring {
-            width: 260px; height: 260px; border: 6px solid var(--gold); border-radius: 50%;
+            width: 220px; height: 220px; border: 6px solid var(--gold); border-radius: 50%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             box-shadow: 0 0 30px var(--gold-dim), inset 0 0 30px var(--gold-dim);
             background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
         }
         .ring-label { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px;}
-        .ring-amount { font-size: 3rem; font-weight: bold; color: var(--text); margin-top: 5px; text-shadow: 0 0 10px rgba(255,255,255,0.3);}
+        .ring-amount { font-size: 2.5rem; font-weight: bold; color: var(--text); margin-top: 5px; text-shadow: 0 0 10px rgba(255,255,255,0.3);}
 
         .entry-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #333; margin-bottom: 30px;}
         .express-input {
@@ -120,19 +163,24 @@
         .ledger-item {
             background: var(--card); padding: 15px; border-radius: 8px; border-left: 4px solid var(--gold);
             display: flex; justify-content: space-between; align-items: center;
+            transition: 0.2s;
         }
+        .ledger-item:hover { border-left-color: var(--gold-glow); }
         .item-details h4 { color: white; margin-bottom: 4px; }
         .item-details p { font-size: 0.85rem; color: var(--text-muted); }
         .item-meta { text-align: right; }
         .item-amount { font-size: 1.3rem; font-weight: bold; color: var(--gold); }
-        .badge { font-size: 0.7rem; padding: 3px 8px; background: #333; border-radius: 10px; margin-top: 5px; display: inline-block; color: #ddd;}
+        .badge { font-size: 0.7rem; padding: 3px 8px; background: #333; border-radius: 10px; margin-top: 5px; display: inline-block; color: #ddd; margin-right: 4px;}
+        .badge-gold { background: var(--gold); color: black; }
         .trash-btn { background: none; border: none; color: var(--danger); font-size: 1.2rem; cursor: pointer; padding-left: 15px;}
+        .edit-btn { background: none; border: none; color: var(--gold); font-size: 1.1rem; cursor: pointer; padding-left: 10px;}
+        .action-btns { display: flex; gap: 5px; align-items: center; }
 
         /* METRIC GRIDS */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;}
         .grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;}
         @media(min-width: 600px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
-        
+
         .stat-card {
             background: var(--card); border: 1px solid #333; padding: 20px;
             border-radius: 10px; text-align: center;
@@ -140,7 +188,7 @@
         .stat-title { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;}
         .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--gold); }
         .stat-sub { font-size: 0.9rem; color: white; margin-top: 5px; }
-        
+
         .progress-bar { width: 100%; height: 6px; background: #333; border-radius: 3px; margin-top: 10px; overflow: hidden;}
         .progress-fill { height: 100%; background: var(--gold); }
 
@@ -148,7 +196,7 @@
         .chat-input-wrapper { display: flex; gap: 10px; margin-bottom: 20px; }
         .chat-input-wrapper input { flex: 1; padding: 15px; border-radius: 8px; background: var(--card); border: 1px solid var(--gold); color: white; outline:none;}
         .chat-input-wrapper button { padding: 0 25px; border-radius: 8px; }
-        
+
         .message-board { display: flex; flex-direction: column; gap: 15px; }
         .message-card { background: var(--card); padding: 15px; border-radius: 8px; border: 1px solid #333; }
         .message-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;}
@@ -159,10 +207,85 @@
             width: 100%; padding: 15px; background: var(--card); border: 1px solid var(--gold);
             color: white; border-radius: 8px; font-size: 1.1rem; margin-bottom: 20px; outline: none;
         }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.8); z-index: 9998; display: none;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: var(--card); padding: 30px; border-radius: 12px;
+            border: 1px solid var(--gold); box-shadow: 0 10px 30px var(--gold-dim);
+            width: 100%; max-width: 450px;
+        }
+        .modal-card h3 { color: var(--gold); margin-bottom: 20px; text-align: center; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-actions .btn { flex: 1; }
+
+        /* Sync indicator */
+        .sync-indicator {
+            position: fixed; top: 10px; right: 10px; z-index: 1001;
+            background: var(--card); border: 1px solid var(--gold-dim);
+            padding: 6px 12px; border-radius: 20px; font-size: 0.75rem;
+            color: var(--gold); display: flex; align-items: center; gap: 6px;
+        }
+        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* Empty state */
+        .empty-state { color: var(--text-muted); text-align: center; padding: 40px; }
     </style>
 <base target="_blank">
 </head>
 <body>
+
+    <!-- SYNC INDICATOR -->
+    <div class="sync-indicator" id="syncIndicator" style="display:none;">
+        <div class="sync-dot"></div>
+        <span>Live Sync Active</span>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-card">
+            <h3>✏️ Edit Transaction</h3>
+            <div class="input-group">
+                <label>Description</label>
+                <input type="text" id="editStatement" placeholder="e.g. 5000 rupees dinner">
+            </div>
+            <div class="input-group">
+                <label>Amount (₹)</label>
+                <input type="number" id="editAmount" placeholder="5000">
+            </div>
+            <div class="input-group">
+                <label>Date</label>
+                <input type="date" id="editDate">
+            </div>
+            <div class="input-group">
+                <label>Payment Mode</label>
+                <select id="editMode">
+                    <option value="CASH">CASH</option>
+                    <option value="UPI">UPI</option>
+                    <option value="CARD">CARD</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Paid By</label>
+                <select id="editPaidBy">
+                    <option value="AJIT">AJIT</option>
+                    <option value="SONALI">SONALI</option>
+                    <option value="TANVI">TANVI</option>
+                    <option value="KRISHNA">KRISHNA</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn" onclick="saveEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
 
     <div id="loginOverlay">
         <div class="login-card">
@@ -184,7 +307,7 @@
     </div>
 
     <div id="appContainer">
-        
+
         <nav id="navBar">
             <div class="nav-item active" data-target="view-ledger" onclick="switchTab(this)">
                 <span class="nav-icon">◎</span> Ledger Room
@@ -204,7 +327,7 @@
         </nav>
 
         <div id="contentArea">
-            
+
             <div id="view-ledger" class="view active">
                 <div class="ring-container">
                     <div class="giant-ring">
@@ -215,6 +338,12 @@
 
                 <div class="entry-card">
                     <input type="text" id="expressInput" class="express-input" placeholder="e.g. 5000 rupees dinner through card" autocomplete="off">
+
+                    <div class="input-group" style="margin-bottom:15px;text-align:left">
+                        <label style="display:block;color:var(--gold);margin-bottom:8px;font-size:0.9rem">Date of Transaction</label>
+                        <input type="date" id="txDate" style="width:100%;padding:12px;background:rgba(0,0,0,0.5);border:1px solid #444;color:white;border-radius:6px;outline:none;font-size:1rem">
+                    </div>
+
                     <div class="pill-group">
                         <div class="pill active" onclick="setPaymentMode('CASH', this)">CASH</div>
                         <div class="pill" onclick="setPaymentMode('UPI', this)">UPI</div>
@@ -232,14 +361,13 @@
                     <button class="btn" onclick="submitExpense()">Log Secure Transaction</button>
                 </div>
 
-                <div class="ledger-list" id="mainLedgerList">
-                    </div>
+                <div class="ledger-list" id="mainLedgerList"></div>
             </div>
 
             <div id="view-analytics" class="view">
                 <h2>Payment Mode Split</h2>
                 <div class="grid-2" id="modeAnalyticsGrid"></div>
-                
+
                 <h2 style="margin-top: 30px;">Category Breakdown</h2>
                 <div class="grid-2" id="categoryAnalyticsGrid"></div>
             </div>
@@ -267,14 +395,12 @@
 
                 <h2 style="margin-top: 30px;">Calendar Filter</h2>
                 <input type="date" class="calendar-input" id="calendarPicker" onchange="renderApp()">
-                <div class="ledger-list" id="filteredLedgerList">
-                    </div>
+                <div class="ledger-list" id="filteredLedgerList"></div>
             </div>
 
             <div id="view-standings" class="view">
                 <h2>Who Spent What</h2>
-                <div class="grid-2" id="standingsGrid">
-                    </div>
+                <div class="grid-2" id="standingsGrid"></div>
             </div>
 
             <div id="view-complaints" class="view">
@@ -283,8 +409,7 @@
                     <input type="text" id="complaintInput" placeholder="Write a note or complaint...">
                     <button class="btn" style="width: auto;" onclick="submitComplaint()">Post</button>
                 </div>
-                <div class="message-board" id="complaintsList">
-                    </div>
+                <div class="message-board" id="complaintsList"></div>
             </div>
 
         </div>
@@ -294,6 +419,7 @@
         // --- IDENTITY LOCK (LOCALSTORAGE) ---
         let currentUser = { name: '', role: '' };
         const storageKey = 'krishna_vault_user';
+        let editingId = null;
 
         function checkIdentity() {
             const saved = localStorage.getItem(storageKey);
@@ -301,7 +427,7 @@
                 currentUser = JSON.parse(saved);
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'block';
-                initGunSync();
+                initFirebaseSync();
             }
         }
 
@@ -309,20 +435,20 @@
             const name = document.getElementById('regName').value.trim();
             const role = document.getElementById('regRole').value;
             if (!name) return alert('Please enter your name.');
-            
+
             currentUser = { name, role };
             localStorage.setItem(storageKey, JSON.stringify(currentUser));
-            
+
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
-            initGunSync();
+            initFirebaseSync();
         }
 
         // --- UI NAVIGATION ---
         function switchTab(clickedEl) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-            
+
             clickedEl.classList.add('active');
             const target = clickedEl.getAttribute('data-target');
             document.getElementById(target).classList.add('active');
@@ -332,8 +458,7 @@
         let selectedMode = 'CASH';
         let expensesData = {};
         let complaintsData = {};
-        
-        let gun, expensesDB, complaintsDB;
+        let expensesRef, complaintsRef;
 
         function setPaymentMode(mode, element) {
             selectedMode = mode;
@@ -341,35 +466,35 @@
             element.classList.add('active');
         }
 
-        // --- GUN.JS REAL-TIME SYNC ---
-        function initGunSync() {
-            // Requirement: Specific reliable peers
-            gun = Gun([
-                'https://gun-us.herokuapp.com/gun',
-                'https://gun-eu.herokuapp.com/gun'
-            ]);
-            
-            // Requirement: Specific DB Key
-            const vaultDB = gun.get("krishna_family_vault_2026_final");
-            expensesDB = vaultDB.get('expenses');
-            complaintsDB = vaultDB.get('complaints');
+        // Set today's date as default
+        document.getElementById('txDate').valueAsDate = new Date();
 
-            // Listeners
-            expensesDB.map().on((data, id) => {
-                if (data === null) {
-                    delete expensesData[id]; // Handle Deletion
-                } else if (data && data.amount !== undefined) {
-                    expensesData[id] = data;
-                }
+        // --- FIREBASE REALTIME SYNC ---
+        function initFirebaseSync() {
+            // Wait for Firebase module to load
+            if (!window.firebaseDB) {
+                setTimeout(initFirebaseSync, 500);
+                return;
+            }
+
+            document.getElementById('syncIndicator').style.display = 'flex';
+
+            const db = window.firebaseDB;
+            const ref = window.firebaseRef;
+            const onValue = window.firebaseOnValue;
+
+            expensesRef = ref(db, 'krishna_family_vault_2026_final/expenses');
+            complaintsRef = ref(db, 'krishna_family_vault_2026_final/complaints');
+
+            onValue(expensesRef, (snapshot) => {
+                const data = snapshot.val();
+                expensesData = data || {};
                 renderApp();
             });
 
-            complaintsDB.map().on((data, id) => {
-                if (data === null) {
-                    delete complaintsData[id];
-                } else if (data && data.text) {
-                    complaintsData[id] = data;
-                }
+            onValue(complaintsRef, (snapshot) => {
+                const data = snapshot.val();
+                complaintsData = data || {};
                 renderComplaints();
             });
         }
@@ -377,8 +502,6 @@
         // --- DATA ENTRY & PARSING ---
         document.getElementById('expressInput').addEventListener('input', (e) => {
             const text = e.target.value.toLowerCase();
-            
-            // Auto-detect Payment Mode
             if (/cash/.test(text)) setPaymentMode('CASH', document.querySelectorAll('.pill')[0]);
             else if (/upi|gpay|paytm|phonepe/.test(text)) setPaymentMode('UPI', document.querySelectorAll('.pill')[1]);
             else if (/card|swipe/.test(text)) setPaymentMode('CARD', document.querySelectorAll('.pill')[2]);
@@ -397,61 +520,156 @@
             const statement = document.getElementById('expressInput').value.trim();
             if(!statement) return;
 
-            // RegEx Extract Amount
             const amtMatch = statement.match(/\b\d+(\.\d+)?\b/);
             const amount = amtMatch ? parseFloat(amtMatch[0]) : 0;
-            
+
             if (amount <= 0) return alert("Please include a valid amount in numbers.");
 
             const category = parseCategory(statement);
-            const timestamp = new Date().toISOString(); // Auto local timestamp behind scenes
+            const dateVal = document.getElementById('txDate').value;
+            const timestamp = dateVal ? new Date(dateVal + 'T12:00:00').toISOString() : new Date().toISOString();
+            const paidBy = document.getElementById('paidBy').value;
 
-            expensesDB.set({
+            const newExpense = {
                 statement: statement,
                 amount: amount,
                 category: category,
                 mode: selectedMode,
                 name: currentUser.name,
                 role: currentUser.role,
+                paidBy: paidBy,
                 timestamp: timestamp
-            });
+            };
+
+            const push = window.firebasePush;
+            const db = window.firebaseDB;
+            const ref = window.firebaseRef;
+            push(ref(db, 'krishna_family_vault_2026_final/expenses'), newExpense);
 
             document.getElementById('expressInput').value = '';
+            document.getElementById('txDate').valueAsDate = new Date();
         }
 
         function deleteExpense(id) {
             if(confirm("Permanently delete this transaction?")) {
-                expensesDB.get(id).put(null);
+                const remove = window.firebaseRemove;
+                const db = window.firebaseDB;
+                const ref = window.firebaseRef;
+                remove(ref(db, 'krishna_family_vault_2026_final/expenses/' + id));
             }
+        }
+
+        // --- EDIT FUNCTIONALITY ---
+        function openEditModal(id) {
+            const tx = expensesData[id];
+            if (!tx) return;
+
+            editingId = id;
+            document.getElementById('editStatement').value = tx.statement || '';
+            document.getElementById('editAmount').value = tx.amount || '';
+            document.getElementById('editMode').value = tx.mode || 'CASH';
+            document.getElementById('editPaidBy').value = tx.paidBy || tx.name || 'AJIT';
+
+            const d = new Date(tx.timestamp);
+            document.getElementById('editDate').value = d.toISOString().split('T')[0];
+
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingId = null;
+        }
+
+        function saveEdit() {
+            if (!editingId) return;
+
+            const statement = document.getElementById('editStatement').value.trim();
+            const amount = parseFloat(document.getElementById('editAmount').value);
+            const mode = document.getElementById('editMode').value;
+            const paidBy = document.getElementById('editPaidBy').value;
+            const dateVal = document.getElementById('editDate').value;
+
+            if (!statement || amount <= 0) return alert('Please enter valid details');
+
+            const category = parseCategory(statement);
+            const timestamp = dateVal ? new Date(dateVal + 'T12:00:00').toISOString() : new Date().toISOString();
+
+            const update = window.firebaseUpdate;
+            const db = window.firebaseDB;
+            const ref = window.firebaseRef;
+
+            update(ref(db, 'krishna_family_vault_2026_final/expenses/' + editingId), {
+                statement: statement,
+                amount: amount,
+                category: category,
+                mode: mode,
+                paidBy: paidBy,
+                timestamp: timestamp
+            });
+
+            closeEditModal();
         }
 
         function submitComplaint() {
             const txt = document.getElementById('complaintInput').value.trim();
             if (!txt) return;
-            
-            complaintsDB.set({
+
+            const push = window.firebasePush;
+            const db = window.firebaseDB;
+            const ref = window.firebaseRef;
+
+            push(ref(db, 'krishna_family_vault_2026_final/complaints'), {
                 text: txt,
                 name: currentUser.name,
+                completed: false,
                 timestamp: new Date().toISOString()
             });
             document.getElementById('complaintInput').value = '';
+        }
+
+        function toggleComplaintComplete(id) {
+            const tx = complaintsData[id];
+            if (!tx) return;
+
+            const update = window.firebaseUpdate;
+            const db = window.firebaseDB;
+            const ref = window.firebaseRef;
+
+            update(ref(db, 'krishna_family_vault_2026_final/complaints/' + id), {
+                completed: !tx.completed
+            });
+        }
+
+        function deleteComplaint(id) {
+            const tx = complaintsData[id];
+            if (!tx || !tx.completed) {
+                alert('Only completed complaints can be deleted.');
+                return;
+            }
+            if(confirm("Delete this completed complaint?")) {
+                const remove = window.firebaseRemove;
+                const db = window.firebaseDB;
+                const ref = window.firebaseRef;
+                remove(ref(db, 'krishna_family_vault_2026_final/complaints/' + id));
+            }
         }
 
         // --- RENDERING ENGINE ---
         function renderApp() {
             const txs = Object.entries(expensesData)
                 .map(([id, data]) => ({ id, ...data }))
-                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Latest first
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
             let totalSpent = 0;
             let modes = { CASH: 0, UPI: 0, CARD: 0 };
             let categories = { 'Food & Dining': 0, 'Transport & Maintenance': 0, 'Personal Grooming': 0, 'Bills & Utilities': 0, 'General': 0 };
             let users = {};
-            
+
             let timeStats = { today: 0, week: 0, month: 0, year: 0 };
             const now = new Date();
             const filterDateStr = document.getElementById('calendarPicker').value;
-            
+
             let mainListHTML = '';
             let filteredListHTML = '';
 
@@ -459,51 +677,47 @@
                 const amt = parseFloat(tx.amount);
                 const txDate = new Date(tx.timestamp);
 
-                // Accumulate totals
                 totalSpent += amt;
                 if(modes[tx.mode] !== undefined) modes[tx.mode] += amt;
                 if(categories[tx.category] !== undefined) categories[tx.category] += amt;
                 users[tx.name] = (users[tx.name] || 0) + amt;
 
-                // Time Calculations
                 const diffTime = now - txDate;
                 const diffDays = diffTime / (1000 * 60 * 60 * 24);
-                
+
                 if (txDate.toDateString() === now.toDateString()) timeStats.today += amt;
                 if (diffDays <= 7) timeStats.week += amt;
                 if (txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear()) timeStats.month += amt;
                 if (txDate.getFullYear() === now.getFullYear()) timeStats.year += amt;
 
-                // Build HTML Item
                 const itemHTML = `
                     <div class="ledger-item">
                         <div class="item-details">
                             <h4>${tx.statement}</h4>
-                            <p>${tx.name} (${tx.role}) • Paid by: <b>${tx.paidBy || 'N/A'}</b> • ${txDate.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</p>
+                            <p>${tx.name} (${tx.role}) • Paid by: <b>${tx.paidBy || tx.name || 'N/A'}</b> • ${txDate.toLocaleString([], {month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'})}</p>
                             <span class="badge">${tx.category}</span>
-                            <span class="badge" style="background:var(--gold); color:black;">${tx.mode}</span>
+                            <span class="badge badge-gold">${tx.mode}</span>
                         </div>
                         <div class="item-meta">
                             <div class="item-amount">₹${amt.toFixed(0)}</div>
-                            <button class="trash-btn" onclick="deleteExpense('${tx.id}')">🗑</button>
+                            <div class="action-btns">
+                                <button class="edit-btn" onclick="openEditModal('${tx.id}')" title="Edit">✏️</button>
+                                <button class="trash-btn" onclick="deleteExpense('${tx.id}')" title="Delete">🗑</button>
+                            </div>
                         </div>
                     </div>
                 `;
 
-                // Main Ledger shows latest 50 for performance
                 if(index < 50) mainListHTML += itemHTML;
 
-                // Time Filter view logic
                 if (filterDateStr && txDate.toDateString() === new Date(filterDateStr).toDateString()) {
                     filteredListHTML += itemHTML;
                 }
             });
 
-            // 1. Ledger View Updates
             document.getElementById('globalTotalSpent').innerText = `₹${totalSpent.toLocaleString()}`;
-            document.getElementById('mainLedgerList').innerHTML = mainListHTML || '<p style="color:var(--text-muted);text-align:center;">No transactions logged yet.</p>';
+            document.getElementById('mainLedgerList').innerHTML = mainListHTML || '<div class="empty-state">No transactions logged yet.</div>';
 
-            // 2. Analytics Updates
             document.getElementById('modeAnalyticsGrid').innerHTML = Object.keys(modes).map(mode => {
                 const pct = totalSpent > 0 ? ((modes[mode] / totalSpent) * 100).toFixed(1) : 0;
                 return `
@@ -528,25 +742,23 @@
                 `;
             }).join('');
 
-            // 3. Time Filter Updates
             document.getElementById('statToday').innerText = `₹${timeStats.today.toLocaleString()}`;
             document.getElementById('statWeek').innerText = `₹${timeStats.week.toLocaleString()}`;
             document.getElementById('statMonth').innerText = `₹${timeStats.month.toLocaleString()}`;
             document.getElementById('statYear').innerText = `₹${timeStats.year.toLocaleString()}`;
-            
+
             if (filterDateStr) {
-                document.getElementById('filteredLedgerList').innerHTML = filteredListHTML || '<p style="color:var(--text-muted);">No entries for this date.</p>';
+                document.getElementById('filteredLedgerList').innerHTML = filteredListHTML || '<div class="empty-state">No entries for this date.</div>';
             } else {
-                document.getElementById('filteredLedgerList').innerHTML = '<p style="color:var(--text-muted);">Select a date above to filter history.</p>';
+                document.getElementById('filteredLedgerList').innerHTML = '<div class="empty-state">Select a date above to filter history.</div>';
             }
 
-            // 4. Standings Updates
             document.getElementById('standingsGrid').innerHTML = Object.keys(users).sort((a,b)=> users[b]-users[a]).map(user => `
                 <div class="stat-card" style="border-color: var(--gold);">
                     <div class="stat-title" style="color: white; font-size: 1rem;">${user}</div>
                     <div class="stat-value">₹${users[user].toLocaleString()}</div>
                 </div>
-            `).join('') || '<p style="color:var(--text-muted); grid-column: span 2;">No data available.</p>';
+            `).join('') || '<div class="empty-state" style="grid-column: span 2;">No data available.</div>';
         }
 
         function renderComplaints() {
@@ -561,20 +773,18 @@
                         <span>${new Date(c.timestamp).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
                     </div>
                     <div class="message-body">${c.text}</div>
-                    <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
+                    <div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                         <label style="cursor:pointer;display:flex;align-items:center;gap:6px;font-size:0.85rem;color:var(--text-muted)">
                             <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleComplaintComplete('${id}')" style="cursor:pointer;width:16px;height:16px;accent-color:var(--gold)">
                             Mark as Completed
                         </label>
-                        ${isDone ? `<button onclick="deleteComplaint('${id}')" style="margin-left:auto;background:rgba(255,68,68,0.15);border:1px solid rgba(255,68,68,0.3);color:var(--danger);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem">&#128465; Delete</button>` : ''}
+                        ${isDone ? `<button class="btn-danger" onclick="deleteComplaint('${id}')">&#128465; Delete</button>` : ''}
                     </div>
                 </div>
-            `}).join('') || '<p style="color:var(--text-muted);">No grievances logged yet. All is peaceful.</p>';
+            `}).join('') || '<div class="empty-state">No grievances logged yet. All is peaceful.</div>';
         }
 
-        // Initialize App check on load
         window.onload = checkIdentity;
     </script>
 </body>
 </html>
-
