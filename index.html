@@ -1,193 +1,923 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Connected Family Vault</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --bg-color: #0b0c10;
-            --card-bg: #141722;
-            --accent: #d4af37;
-            --accent-hover: #f0c950;
-            --text-main: #ffffff;
-            --text-muted: #8b8e98;
-            --danger: #ff4a4a;
-            --border: #222632;
-            --success: #2ec4b6;
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0B0C10"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Family Vault</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0B0C10;--bg2:#111318;--bg3:#181B22;
+  --gold:#D4AF37;--gold2:#F0D060;
+  --emerald:#00E676;--red:#FF5252;
+  --text:#E8E8E8;--text2:#A0A8B8;--text3:#606880;
+  --border:#1E2230;--radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;overflow-x:hidden;padding-bottom:max(env(safe-area-inset-bottom),20px)}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
-        .header h1 { color: var(--accent); font-size: 1.4rem; font-weight: bold; letter-spacing: 1px; }
-        .user-badge { background: #1f2330; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border); color: var(--accent); }
+/* ── ONBOARDING SCREEN ── */
+#onboard{
+  position:fixed;inset:0;background:var(--bg);z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px;gap:0;
+}
+#onboard.hidden{display:none}
+.ob-logo{
+  font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;
+  background:linear-gradient(135deg,var(--gold),var(--gold2),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:6px;letter-spacing:1px;
+}
+.ob-sub{font-size:12px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:48px}
+.ob-question{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--text);text-align:center;margin-bottom:8px;font-weight:600}
+.ob-hint{font-size:12px;color:var(--text3);text-align:center;margin-bottom:32px;line-height:1.6}
+.ob-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:320px}
+.ob-btn{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;
+  transition:all .25s;color:var(--text2);
+}
+.ob-btn:hover,.ob-btn:active{border-color:var(--gold);background:rgba(212,175,55,.06);transform:scale(1.02)}
+.ob-avatar{
+  width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;
+  border:1.5px solid var(--border);
+}
+.ob-name{font-size:13px;font-weight:500;color:var(--text)}
+.ob-role{font-size:10px;color:var(--text3);margin-top:-4px}
+.ob-confirm{
+  margin-top:20px;width:100%;max-width:320px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border:none;border-radius:12px;padding:15px;color:#0B0C10;
+  font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.3px;
+  display:none;transition:all .2s;
+}
+.ob-confirm:hover{box-shadow:0 4px 20px rgba(212,175,55,.4)}
 
-        .card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-        
-        #profileScreen { text-align: center; padding: 40px 20px; }
-        select, input[type="text"], input[type="number"], button {
-            width: 100%; background: #1f2330; color: white; border: 1px solid #2d3345;
-            padding: 14px; border-radius: 10px; font-size: 1rem; outline: none; margin-bottom: 15px;
-        }
-        button { background: var(--accent); color: black; font-weight: bold; cursor: pointer; border: none; margin-bottom: 0; }
-        button:hover { background: var(--accent-hover); }
+/* ── TOP BAR ── */
+#topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(11,12,16,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:12px 20px;display:flex;align-items:center;justify-content:space-between;
+}
+.brand{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px}
+#profile-pill{
+  display:flex;align-items:center;gap:7px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:5px 12px 5px 7px;
+}
+#profile-pill .pill-dot{width:8px;height:8px;border-radius:50%}
+#profile-pill .pill-name{font-size:12px;color:var(--text2);font-weight:500}
+#clock{font-size:10px;color:var(--text3);text-align:right;line-height:1.5}
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .stat-box { text-align: center; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border); }
-        .stat-box h2 { color: var(--accent); font-size: 1.8rem; margin-top: 5px; }
+/* ── LAYOUT ── */
+main{padding:16px;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 
-        .progress-container { margin-top: 15px; background: #1f2330; border-radius: 8px; height: 10px; overflow: hidden; }
-        .progress-bar { background: var(--accent); height: 100%; width: 0%; transition: width 0.4s ease; }
+/* ── RING ── */
+#ring-section{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;
+  position:relative;overflow:hidden;
+}
+#ring-section::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(212,175,55,.07),transparent 70%);pointer-events:none}
+.ring-wrap{position:relative;width:160px;height:160px}
+#ring-svg{transform:rotate(-90deg)}
+#ring-bg{fill:none;stroke:var(--border);stroke-width:10}
+#ring-path{fill:none;stroke:url(#rg);stroke-width:10;stroke-linecap:round;stroke-dasharray:439.82;stroke-dashoffset:439.82;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 10px rgba(212,175,55,.45))}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.ring-amt{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ring-lbl{font-size:9px;color:var(--text3);letter-spacing:1.8px;text-transform:uppercase}
+.ring-txn{font-size:11px;color:var(--text2);margin-top:2px}
+.ring-foot{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
 
-        .input-row { display: flex; flex-direction: column; gap: 10px; }
-        .input-group { display: flex; gap: 10px; }
-        .input-group input { margin-bottom: 0; flex-grow: 1; }
-        .input-group select { margin-bottom: 0; width: 110px; font-size: 0.9rem; padding: 10px; }
-        .input-group button { width: 60px; padding: 0; font-size: 1.2rem; }
+/* ── STREAK ── */
+#streak-card{
+  background:linear-gradient(135deg,var(--bg2),#0d1015);
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;display:flex;align-items:center;gap:12px;
+  position:relative;overflow:hidden;transition:border-color .3s;
+}
+#streak-card.lit{border-color:rgba(212,175,55,.5)}
+.s-flame{font-size:34px;animation:flicker 1.6s ease-in-out infinite alternate;filter:drop-shadow(0 0 8px rgba(255,160,0,.5))}
+@keyframes flicker{from{transform:scale(1) rotate(-2deg)}to{transform:scale(1.09) rotate(2deg)}}
+.s-info{flex:1}
+.s-title{font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.s-count{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700}
+.s-count span{font-size:13px;font-weight:400;color:var(--text2)}
+#plat-badge{
+  position:absolute;top:10px;right:10px;
+  background:linear-gradient(135deg,#8B6914,var(--gold),#8B6914);
+  color:#0B0C10;font-size:8px;font-weight:700;letter-spacing:.8px;
+  padding:4px 9px;border-radius:20px;display:none;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.8;transform:scale(.96)}}
 
-        .ledger-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .ledger-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1d29; border-radius: 8px; border-left: 4px solid var(--accent); }
-        .ledger-left { display: flex; flex-direction: column; gap: 4px; }
-        .member-tag { font-weight: bold; font-size: 0.85rem; color: var(--accent); }
-        .chat-text { font-size: 0.95rem; color: var(--text-main); }
-        
-        .badge-container { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
-        .cat-badge { background: #252a3a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--text-muted); }
-        .pay-badge { background: rgba(0, 123, 255, 0.15); border: 1px solid rgba(0, 123, 255, 0.4); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: #66b2ff; text-transform: uppercase; font-weight: bold; }
-        
-        .amount-right { display: flex; align-items: center; gap: 12px; }
-        .amount-tag { font-weight: bold; font-size: 1.1rem; color: var(--text-main); }
-        .delete-btn { color: var(--danger); cursor: pointer; font-size: 1.1rem; opacity: 0.7; }
+/* ── INPUT ── */
+#input-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.inp-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.inp-lbl{font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3)}
+#bd-btn{background:none;border:1px solid var(--border);border-radius:7px;color:var(--gold);font-size:10px;padding:4px 10px;cursor:pointer;transition:all .2s}
+#bd-btn:hover{border-color:var(--gold);background:rgba(212,175,55,.05)}
+#bd-row{display:none;margin-bottom:12px}
+#custom-dt{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 12px;font-size:13px;color-scheme:dark;outline:none}
+.inp-row{display:flex;gap:8px}
+#exp-input{
+  flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);padding:12px 14px;font-size:14px;resize:none;outline:none;
+  font-family:'Inter',sans-serif;min-height:48px;transition:border-color .2s;
+}
+#exp-input:focus{border-color:var(--gold)}
+#exp-input::placeholder{color:var(--text3)}
+#send-btn{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border:none;border-radius:10px;padding:12px 16px;cursor:pointer;
+  font-size:18px;display:flex;align-items:center;justify-content:center;
+  min-width:50px;transition:all .2s;
+}
+#send-btn:hover{transform:scale(1.05);box-shadow:0 4px 20px rgba(212,175,55,.4)}
+#send-btn:disabled{opacity:.4;transform:none;cursor:not-allowed}
+#ai-bar{display:flex;align-items:center;gap:7px;margin-top:10px;min-height:18px}
+.dots{display:none;gap:4px}
+.dots span{width:5px;height:5px;border-radius:50%;background:var(--gold);display:inline-block;animation:db .8s ease-in-out infinite}
+.dots span:nth-child(2){animation-delay:.16s}.dots span:nth-child(3){animation-delay:.32s}
+@keyframes db{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+#ai-txt{font-size:11px;color:var(--text3)}
 
-        .chart-box { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-        .chart-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
-        .chart-bar-bg { flex-grow: 1; margin: 0 10px; background: #1f2330; height: 8px; border-radius: 4px; overflow: hidden; }
-        .chart-bar-fill { background: var(--accent); height: 100%; width: 0%; }
-        .reset-link { font-size: 0.75rem; color: #444; text-align: center; cursor: pointer; margin-top: 10px; text-decoration: underline; }
-    </style>
+/* ── CAT GRID ── */
+#cats-wrap{display:flex;flex-direction:column;gap:0}
+.cats-lbl{font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);padding:4px 0 10px}
+#cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#cat-empty{text-align:center;padding:24px 16px;color:var(--text3);font-size:13px;line-height:1.7;border:1px dashed var(--border);border-radius:var(--radius)}
+.cat-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;
+  opacity:0;transform:translateY(12px) scale(.96);
+  transition:opacity .45s cubic-bezier(.34,1.56,.64,1),transform .45s cubic-bezier(.34,1.56,.64,1);
+  position:relative;overflow:hidden;
+}
+.cat-card.show{opacity:1;transform:translateY(0) scale(1)}
+.cat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .3s}
+.cat-card:hover::after{opacity:1}
+.cat-card.bad::after{background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.c-icon{font-size:20px;margin-bottom:7px}
+.c-name{font-size:10px;font-weight:500;color:var(--text2);margin-bottom:4px;letter-spacing:.3px}
+.c-amt{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:8px}
+.c-bar-bg{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.c-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.cat-card.bad .c-bar{background:linear-gradient(90deg,var(--red),#FF8A80)}
+.c-pct{font-size:10px;color:var(--text3);margin-top:5px}
+
+/* ── LEDGER ── */
+#ledger-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.led-title{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold);margin-bottom:12px}
+#led-list{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto}
+.led-item{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:10px;animation:fi .35s ease forwards}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.led-dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.led-dot.g{background:var(--emerald)}.led-dot.w{background:var(--red)}
+.led-body{flex:1;font-size:12px;color:var(--text2);line-height:1.5}
+.led-date{font-size:10px;color:var(--text3);margin-bottom:2px}
+.led-tag{font-size:10px}
+.led-tag.g{color:var(--emerald)}.led-tag.w{color:var(--red)}
+.led-amt{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);font-weight:500;white-space:nowrap}
+.led-empty{font-size:13px;color:var(--text3);text-align:center;padding:24px;line-height:1.7}
+
+/* ── REPORT BTN ── */
+#rep-btn{
+  background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(212,175,55,.03));
+  border:1px solid var(--gold);border-radius:var(--radius);
+  color:var(--gold);font-size:13px;font-weight:500;
+  padding:15px;cursor:pointer;width:100%;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;letter-spacing:.3px;
+}
+#rep-btn:hover{background:rgba(212,175,55,.14);box-shadow:0 0 24px rgba(212,175,55,.12)}
+
+/* ── FESTIVAL SECTION ── */
+#fest-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.tog-row{display:flex;align-items:center;gap:12px}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.tog-slider{position:absolute;inset:0;border-radius:12px;background:var(--border);cursor:pointer;transition:.3s}
+.tog-slider::before{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--text3);transition:.3s}
+.toggle input:checked+.tog-slider{background:rgba(212,175,55,.25)}
+.toggle input:checked+.tog-slider::before{transform:translateX(20px);background:var(--gold);box-shadow:0 0 8px rgba(212,175,55,.5)}
+.tog-info .tog-lbl{font-size:13px;color:var(--text);font-weight:500}
+.tog-info .tog-sub{font-size:11px;color:var(--text3);margin-top:2px}
+#fest-box{background:rgba(212,175,55,.04);border:1px solid rgba(212,175,55,.25);border-radius:12px;padding:14px;margin-top:12px;display:none}
+.fest-title{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);margin-bottom:10px}
+#fest-pills{display:flex;flex-wrap:wrap;gap:6px}
+.fpill{background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--gold)}
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(10px);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.open{opacity:1;pointer-events:all}
+.mbox{background:var(--bg2);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;transform:translateY(50px);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.overlay.open .mbox{transform:translateY(0)}
+.mhandle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.mtitle{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.msub{font-size:12px;color:var(--text3);margin-bottom:20px}
+.mclose{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:7px 16px;cursor:pointer;font-size:12px;transition:all .2s;margin-top:16px;width:100%}
+.mclose:hover{border-color:var(--text3)}
+
+/* ── RECHARGE MODAL ── */
+#rch-modal .mbox{border-top:2px solid var(--gold)}
+.rch-icon{font-size:42px;text-align:center;margin-bottom:12px}
+.rch-body{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;text-align:center}
+.rch-amt{font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--gold);text-align:center;font-weight:700;margin-bottom:16px}
+.rch-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-y{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0B0C10;border:none;border-radius:10px;padding:13px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-y:hover{box-shadow:0 4px 18px rgba(212,175,55,.4)}
+.btn-n{background:none;border:1px solid var(--border);border-radius:10px;color:var(--text2);padding:13px;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-n:hover{border-color:var(--text3)}
+
+/* ── REPORT MODAL ── */
+.rep-grade{font-family:'Cormorant Garamond',serif;font-size:68px;font-weight:700;text-align:center;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.rep-glbl{text-align:center;font-size:10px;color:var(--text3);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:20px}
+.rep-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.rep-row:last-child{border:none}
+.rep-rl{font-size:12px;color:var(--text2)}
+.rep-rv{font-family:'JetBrains Mono',monospace;font-size:12px}
+.rep-rv.g{color:var(--emerald)}.rep-rv.r{color:var(--red)}.rep-rv.n{color:var(--gold)}
+.rep-insight{background:rgba(212,175,55,.05);border:1px solid rgba(212,175,55,.18);border-radius:10px;padding:12px;margin-top:12px;font-size:12px;color:var(--text2);line-height:1.6}
+
+/* ── OFFLINE ── */
+#offline-bar{background:rgba(255,82,82,.08);border:1px solid var(--red);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--red);display:none;align-items:center;gap:6px;margin:0 16px 0}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;color:var(--text);z-index:400;opacity:0;transition:all .28s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── FESTIVAL BODY ── */
+body.fest{--gold:#FFD700;--gold2:#FFA500;--bg:#0A0800;--bg2:#110F00;--bg3:#181200}
+</style>
 </head>
 <body>
 
-    <div class="container">
-        <div id="profileScreen" class="card">
-            <h2 style="color: var(--accent); margin-bottom: 10px;">🔒 Connected Family Vault</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">Select your user profile to link this device to the shared pool.</p>
-            
-            <select id="profileSelector">
-                <option value="Papa">Papa</option>
-                <option value="Mama">Mama</option>
-                <option value="Brother">Brother</option>
-                <option value="Sister">Sister</option>
-            </select>
-            <button onclick="lockAndLoginDevice()">Unlock Shared Dashboard</button>
-        </div>
+<!-- ═══════════ ONBOARDING ═══════════ -->
+<div id="onboard">
+  <div class="ob-logo">◆ Family Vault</div>
+  <div class="ob-sub">Premium Family Finance</div>
+  <div class="ob-question">Which device is this?</div>
+  <div class="ob-hint">This selection is permanent and locks your<br>private ledger to this phone.</div>
+  <div class="ob-grid">
+    <button class="ob-btn" onclick="selectDevice(0,this)">
+      <div class="ob-avatar" style="background:rgba(212,175,55,.1);color:var(--gold)">P</div>
+      <div class="ob-name">Papa</div>
+      <div class="ob-role">Head of House</div>
+    </button>
+    <button class="ob-btn" onclick="selectDevice(1,this)">
+      <div class="ob-avatar" style="background:rgba(0,230,118,.08);color:var(--emerald)">M</div>
+      <div class="ob-name">Mama</div>
+      <div class="ob-role">Co-Manager</div>
+    </button>
+    <button class="ob-btn" onclick="selectDevice(2,this)">
+      <div class="ob-avatar" style="background:rgba(130,130,255,.1);color:#8888ff">S</div>
+      <div class="ob-name">Sister</div>
+      <div class="ob-role">Member</div>
+    </button>
+    <button class="ob-btn" onclick="selectDevice(3,this)">
+      <div class="ob-avatar" style="background:rgba(255,120,120,.1);color:#ff8888">B</div>
+      <div class="ob-name">Brother</div>
+      <div class="ob-role">Member</div>
+    </button>
+  </div>
+  <button class="ob-confirm" id="ob-confirm" onclick="confirmDevice()">Confirm & Enter Vault →</button>
+</div>
 
-        <div id="mainDashboard" style="display: none;">
-            <div class="header">
-                <h1>◆ FAMILY VAULT</h1>
-                <div class="user-badge" id="activeUserDisplay">👤 Profile</div>
-            </div>
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div id="app" style="display:none">
 
-            <div class="card">
-                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">📅 Monthly Shared Limits</h3>
-                <div class="input-group" style="margin-bottom: 15px;">
-                    <input type="number" id="monthlyBudgetInput" placeholder="Set Monthly Budget Limit (e.g. 40000)">
-                    <button style="width: auto; padding: 0 15px; font-size: 0.9rem;" onclick="saveMonthlyBudget()">Set Global</button>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">POOL TOTAL EXPENDED</span>
-                        <h2 id="globalTotalDisplay">₹0</h2>
-                    </div>
-                    <div class="stat-box">
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">SHARED BUDGET REMAINING</span>
-                        <h2 id="budgetRemainingDisplay">₹0</h2>
-                    </div>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar" id="budgetProgressBar"></div>
-                </div>
-            </div>
+<header id="topbar">
+  <div class="brand">◆ Family Vault</div>
+  <div id="profile-pill">
+    <div class="pill-dot" id="pp-dot"></div>
+    <div class="pill-name" id="pp-name">—</div>
+  </div>
+</header>
 
-            <div class="card">
-                <h3 style="font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; color: var(--text-muted);">💬 Express Transaction Logger</h3>
-                <div class="input-row">
-                    <div class="input-group">
-                        <input type="text" id="expenseInput" placeholder="Type info (e.g., 500 dinner upi)...">
-                        <select id="paymentMethodSelector">
-                            <option value="Auto">Auto Detect</option>
-                            <option value="UPI">UPI</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Card">Card</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <button onclick="handleIncomingLog()">➤</button>
-                    </div>
-                </div>
-            </div>
+<div id="offline-bar">⚡ Offline — entries queued for sync</div>
 
-            <div class="card">
-                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--accent); margin-bottom: 12px;">📊 Live Distribution Statistics</h3>
-                <div class="chart-box" id="statsChartDistribution"></div>
-            </div>
+<main>
 
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted);">📜 Shared Sync Stream Ledger</h3>
-                    <span onclick="syncCloudVaultStream()" style="cursor: pointer; color: var(--accent); font-size: 0.75rem; font-weight: bold;">🔄 FORCE SYNC</span>
-                </div>
-                <div class="ledger-list" id="globalLedgerList">
-                    <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center;">Connecting to central family stream...</p>
-                </div>
-            </div>
-
-            <div class="reset-link" onclick="logoutDeviceIdentity()">Reset This Device's Identity Lock</div>
-        </div>
+  <!-- RING -->
+  <section id="ring-section">
+    <div class="ring-wrap">
+      <svg id="ring-svg" viewBox="0 0 160 160" width="160" height="160" style="transform:rotate(-90deg)">
+        <defs>
+          <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#D4AF37"/>
+            <stop offset="50%" stop-color="#F0D060"/>
+            <stop offset="100%" stop-color="#D4AF37"/>
+          </linearGradient>
+        </defs>
+        <circle id="ring-bg" cx="80" cy="80" r="70"/>
+        <circle id="ring-path" cx="80" cy="80" r="70"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-amt" id="ring-amt">₹0</div>
+        <div class="ring-lbl">Total Spent</div>
+        <div class="ring-txn" id="ring-txn">0 entries</div>
+      </div>
     </div>
+    <div class="ring-foot">Family Monthly Expenditure</div>
+  </section>
 
-    <script>
-        const CLOUD_URL = "https://ffgagiqsrpvpgeexzhnh.supabase.co"; 
-        const CLOUD_KEY = "sb_publishable_P_J4_hLf-FoBv1fDgnEtdg_eKXFChGv";
-        
-        let centralCloudClient = null;
-        try {
-            // FIXED LINE: Avoided conflict with variable names causing the browser crash
-            centralCloudClient = supabase.createClient(CLOUD_URL, CLOUD_KEY);
-        } catch(e) {
-            console.error("Cloud connection sequence failure.");
-        }
+  <!-- STREAK -->
+  <section id="streak-card">
+    <div class="s-flame">🔥</div>
+    <div class="s-info">
+      <div class="s-title">Capital Protection Streak</div>
+      <div class="s-count" id="s-count">0 <span>Days No Wastage</span></div>
+    </div>
+    <div id="plat-badge">✦ PLATINUM STABILITY</div>
+  </section>
 
-        let activeUser = "";
-        let memoryStreamCache = [];
-        let globalBudget = parseFloat(localStorage.getItem("vault_cloud_shared_budget")) || 40000;
+  <!-- INPUT -->
+  <section id="input-section">
+    <div class="inp-hdr">
+      <div class="inp-lbl">Log Expense via Gemini AI</div>
+      <button id="bd-btn" onclick="toggleBD()">📅 Backdate</button>
+    </div>
+    <div id="bd-row"><input type="datetime-local" id="custom-dt"/></div>
+    <div class="inp-row">
+      <textarea id="exp-input" rows="1" placeholder="e.g. Papa paid for family dinner 3500 Rs…" oninput="autoResize(this)"></textarea>
+      <button id="send-btn" onclick="logExpense()">➤</button>
+    </div>
+    <div id="ai-bar">
+      <div class="dots" id="dots"><span></span><span></span><span></span></div>
+      <span id="ai-txt">Gemini AI ready</span>
+    </div>
+  </section>
 
-        window.onload = function() {
-            document.getElementById('monthlyBudgetInput').value = globalBudget;
-            let currentLock = localStorage.getItem("vault_device_lock_v4");
-            if(currentLock) {
-                activeUser = currentLock;
-                showDashboardHub();
-            }
-        }
+  <!-- CAT GRID -->
+  <div id="cats-wrap">
+    <div class="cats-lbl">Spending Breakdown</div>
+    <div id="cat-grid"></div>
+    <div id="cat-empty">◈ Premium category cards appear<br>as you log your first expense</div>
+  </div>
 
-        function lockAndLoginDevice() {
-            let userChoice = document.getElementById('profileSelector').value;
-            localStorage.setItem("vault_device_lock_v4", userChoice);
-            activeUser = userChoice;
-            showDashboardHub();
-        }
+  <!-- PRIVATE LEDGER -->
+  <section id="ledger-section">
+    <div class="led-title" id="led-title">◎ My Private Ledger</div>
+    <div id="led-list">
+      <div class="led-empty">No transactions yet.<br>Your private log will appear here.</div>
+    </div>
+  </section>
 
-        function logoutDeviceIdentity() {
-            if(confirm("Disconnect this device identity profile?")) {
-                localStorage.removeItem("vault_device_lock_v4");
-                location.reload();
-            }
-        }
+  <!-- REPORT BUTTON -->
+  <button id="rep-btn" onclick="openReport()">📊 Monthly Family Council Report</button>
 
-        function showDashboardHub() {
-            document.getElementById('activeUserDisplay').innerText = "👤 " + activeUser;
-            document
+  <!-- FESTIVAL -->
+  <section id="fest-section">
+    <div class="tog-row">
+      <label class="toggle"><input type="checkbox" id="fest-tog" onchange="toggleFest()"/><span class="tog-slider"></span></label>
+      <div class="tog-info">
+        <div class="tog-lbl">Festival & Shubh Muhurat Mode</div>
+        <div class="tog-sub">Isolate festive spending from baseline</div>
+      </div>
+    </div>
+    <div id="fest-box">
+      <div class="fest-title">🪔 Festive Tracker</div>
+      <div id="fest-pills"></div>
+    </div>
+  </section>
+
+</main>
+</div><!-- end #app -->
+
+<!-- RECHARGE MODAL -->
+<div class="overlay" id="rch-modal">
+  <div class="mbox">
+    <div class="mhandle"></div>
+    <div class="rch-icon">📱</div>
+    <div class="mtitle" style="text-align:center">Mobile Recharge Window Active</div>
+    <div class="rch-body">Sister's monthly recharge is due. Confirm payment to auto-log it under Sister's Bills ledger with the 9th as the fixed timestamp.</div>
+    <div class="rch-amt" id="rch-amt">₹299</div>
+    <div class="rch-btns">
+      <button class="btn-y" onclick="rechargeYes()">✓ Yes, Paid</button>
+      <button class="btn-n" onclick="closeModal('rch-modal')">Not Yet</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="overlay" id="rep-modal">
+  <div class="mbox">
+    <div class="mhandle"></div>
+    <div class="mtitle">Monthly Council Report</div>
+    <div class="msub" id="rep-sub"></div>
+    <div class="rep-grade" id="rep-grade">—</div>
+    <div class="rep-glbl">Household Financial Health Grade</div>
+    <div id="rep-rows"></div>
+    <div class="rep-insight" id="rep-insight"></div>
+    <button class="mclose" onclick="closeModal('rep-modal')">Close Report</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════
+const GEMINI_KEY = "AQ.Ab8RN6K4Dtcqkmac53yzGkqlBj31s6I2FQLGLLmPJpweYY5nWA";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+const PROFILES = ["Papa","Mama","Sister","Brother"];
+const PROFILE_COLORS = ["#D4AF37","#00E676","#8888ff","#ff8888"];
+const RECHARGE_AMOUNT = 299;
+const BUDGET_CEILING = 50000;
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const CAT_ICONS = {
+  Groceries:"🛒","Food/Dining":"🍽️",Medical:"💊",School:"📚",
+  Bills:"⚡","Bills/Recharges":"📱",Recharge:"📱",Transport:"🚗",
+  Gold:"🪙",Entertainment:"🎬",Shopping:"🛍️",Clothing:"👗",
+  Utilities:"🔧",Gifts:"🎁",Puja:"🪔",Wastage:"⚠️",Leisure:"🎮",Other:"📦"
+};
+const WASTAGE_CATS = new Set(["Wastage","Entertainment","Leisure","Shopping","Clothing"]);
+
+// ═══════════════════════════════
+// STATE
+// ═══════════════════════════════
+let S = {
+  profile: null,           // 0-3, locked to this device
+  transactions: [],        // all transactions from this device
+  categories: {},          // {name: {amount, type, icon}}
+  streak: { count: 0, lastNoWastageDate: null },
+  festMode: false,
+  festEntries: { Gifts: 0, Gold: 0, Puja: 0 },
+  pendingSync: [],         // offline queue
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem("fv2_state");
+    if (raw) S = { ...S, ...JSON.parse(raw) };
+  } catch(e) {}
+}
+
+function saveState() {
+  try { localStorage.setItem("fv2_state", JSON.stringify(S)); } catch(e) {}
+}
+
+// ═══════════════════════════════
+// ONBOARDING — DEVICE LOCK
+// ═══════════════════════════════
+let pendingDevice = null;
+
+function selectDevice(idx, btn) {
+  pendingDevice = idx;
+  document.querySelectorAll(".ob-btn").forEach(b => b.style.borderColor = "");
+  btn.style.borderColor = "var(--gold)";
+  btn.style.background = "rgba(212,175,55,.07)";
+  const conf = document.getElementById("ob-confirm");
+  conf.style.display = "block";
+  conf.textContent = `Enter as ${PROFILES[idx]} →`;
+}
+
+function confirmDevice() {
+  if (pendingDevice === null) return;
+  S.profile = pendingDevice;
+  saveState();
+  bootApp();
+}
+
+function bootApp() {
+  if (S.profile === null) {
+    document.getElementById("onboard").classList.remove("hidden");
+    document.getElementById("app").style.display = "none";
+    return;
+  }
+  document.getElementById("onboard").classList.add("hidden");
+  document.getElementById("app").style.display = "block";
+
+  // Set profile pill
+  document.getElementById("pp-dot").style.background = PROFILE_COLORS[S.profile];
+  document.getElementById("pp-name").textContent = PROFILES[S.profile];
+  document.getElementById("led-title").textContent = `◎ ${PROFILES[S.profile]}'s Private Ledger`;
+
+  startClock();
+  updateOfflineBanner();
+  checkRechargeReminder();
+  if (S.festMode) {
+    document.getElementById("fest-tog").checked = true;
+    document.body.classList.add("fest");
+    document.getElementById("fest-box").style.display = "block";
+  }
+  renderAll();
+}
+
+// ═══════════════════════════════
+// CLOCK
+// ═══════════════════════════════
+function fmtDate(d) {
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const pad = n => n.toString().padStart(2,"0");
+  let h = d.getHours(), m = pad(d.getMinutes()), ap = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${days[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}, ${h}:${m} ${ap}`;
+}
+
+function startClock() {
+  const tick = () => {
+    const d = new Date();
+    const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const mo = MONTHS[d.getMonth()].slice(0,3);
+    let h = d.getHours(), mi = d.getMinutes().toString().padStart(2,"0"), ap = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    // (clock removed from topbar in this design — profile pill shown instead)
+  };
+  tick();
+  setInterval(tick, 30000);
+}
+
+// ═══════════════════════════════
+// DATE PICKER
+// ═══════════════════════════════
+function toggleBD() {
+  const row = document.getElementById("bd-row");
+  const open = row.style.display === "block";
+  row.style.display = open ? "none" : "block";
+  if (!open) {
+    const n = new Date(), pad = v => v.toString().padStart(2,"0");
+    document.getElementById("custom-dt").value =
+      `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}T${pad(n.getHours())}:${pad(n.getMinutes())}`;
+  }
+}
+
+function getActiveDate() {
+  const row = document.getElementById("bd-row"), val = document.getElementById("custom-dt").value;
+  return (row.style.display === "block" && val) ? new Date(val) : new Date();
+}
+
+// ═══════════════════════════════
+// GEMINI AI — NO FALLBACK
+// ═══════════════════════════════
+async function callGemini(userText, dateStr) {
+  const systemPrompt = `You are a smart Indian family expense tracker. The user might spell things wrong (e.g., 'gorcery', 'gocerys'). Intelligently extract the numeric amount and map it into clear categories like 'Groceries', 'Food/Dining', 'Bills/Recharges', 'Clothing', 'Medical', or 'Wastage'. Respond ONLY in a clean JSON format: {"amount": 2000, "category": "Groceries", "type": "Good Spend"}
+
+Date context: ${dateStr}
+User input: "${userText}"
+
+Rules:
+- type must be exactly "Good Spend" or "Wastage"
+- Wastage = impulse, junk food, individual non-essential luxury, entertainment for self
+- Good Spend = groceries, medical, school, bills, utilities, family meals, family necessities, transport, gold, clothing (essentials)
+- Return ONLY the JSON object. No markdown. No extra text.`;
+
+  const res = await fetch(GEMINI_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{
+          text: systemPrompt
+        }]
+      }]
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Gemini API error ${res.status}: ${err?.error?.message || res.statusText}`);
+  }
+
+  const data = await res.json();
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const cleaned = raw.replace(/```json|```/g, "").trim();
+  const parsed = JSON.parse(cleaned);
+
+  if (!parsed.amount || !parsed.category || !parsed.type) throw new Error("Incomplete Gemini response");
+  return parsed;
+}
+
+// ═══════════════════════════════
+// LOG EXPENSE
+// ═══════════════════════════════
+async function logExpense() {
+  const inp = document.getElementById("exp-input");
+  const text = inp.value.trim();
+  if (!text) return;
+
+  const date = getActiveDate();
+  const dateStr = fmtDate(date);
+  const btn = document.getElementById("send-btn");
+  const dots = document.getElementById("dots");
+  const aiTxt = document.getElementById("ai-txt");
+
+  btn.disabled = true;
+  dots.style.display = "flex";
+  aiTxt.textContent = "Sending to Gemini AI…";
+
+  let parsed;
+  try {
+    parsed = await callGemini(text, dateStr);
+    aiTxt.textContent = `✓ ${parsed.category} — ${parsed.type}`;
+  } catch(e) {
+    dots.style.display = "none";
+    btn.disabled = false;
+    aiTxt.textContent = `✗ ${e.message}`;
+    showToast("⚠ Gemini error — check API key or network");
+    return;
+  }
+
+  dots.style.display = "none";
+  btn.disabled = false;
+
+  const txn = {
+    id: Date.now(),
+    profile: S.profile,
+    category: parsed.category,
+    amount: Number(parsed.amount) || 0,
+    type: parsed.type,
+    text: text.length > 60 ? text.slice(0, 60) + "…" : text,
+    date: dateStr,
+    ts: date.toISOString(),
+    festival: S.festMode,
+  };
+
+  if (!navigator.onLine) {
+    S.pendingSync.push(txn);
+    saveState();
+    showToast("⚡ Offline — cached for sync on reconnect");
+  } else {
+    commitTxn(txn);
+  }
+
+  inp.value = "";
+  autoResize(inp);
+  document.getElementById("bd-row").style.display = "none";
+}
+
+function commitTxn(txn) {
+  S.transactions.push(txn);
+
+  if (txn.festival) {
+    const fkey = ["Gifts","Gold","Puja"].includes(txn.category) ? txn.category : "Gifts";
+    S.festEntries[fkey] = (S.festEntries[fkey] || 0) + txn.amount;
+    renderFestPills();
+  } else {
+    if (!S.categories[txn.category]) {
+      S.categories[txn.category] = {
+        amount: 0,
+        type: txn.type,
+        icon: CAT_ICONS[txn.category] || "📦"
+      };
+    }
+    S.categories[txn.category].amount += txn.amount;
+  }
+
+  updateStreak(txn);
+  saveState();
+  renderAll();
+}
+
+// ═══════════════════════════════
+// STREAK
+// ═══════════════════════════════
+function updateStreak(txn) {
+  const today = txn.ts.slice(0, 10);
+  if (txn.type === "Wastage" || WASTAGE_CATS.has(txn.category)) {
+    S.streak = { count: 0, lastNoWastageDate: null };
+  } else {
+    if (S.streak.lastNoWastageDate !== today) {
+      S.streak.count = (S.streak.count || 0) + 1;
+      S.streak.lastNoWastageDate = today;
+    }
+  }
+}
+
+// ═══════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════
+function renderAll() {
+  renderRing();
+  renderCats();
+  renderLedger();
+  renderStreak();
+}
+
+function renderRing() {
+  const total = Object.values(S.categories).reduce((s, c) => s + c.amount, 0);
+  const txnCount = S.transactions.filter(t => !t.festival).length;
+  document.getElementById("ring-amt").textContent = `₹${total.toLocaleString("en-IN")}`;
+  document.getElementById("ring-txn").textContent = `${txnCount} entr${txnCount !== 1 ? "ies" : "y"}`;
+  const circ = 2 * Math.PI * 70; // 439.82
+  const pct = Math.min(total / BUDGET_CEILING, 1);
+  document.getElementById("ring-path").style.strokeDashoffset = circ * (1 - pct);
+}
+
+function renderCats() {
+  const grid = document.getElementById("cat-grid");
+  const empty = document.getElementById("cat-empty");
+  const activeCats = Object.entries(S.categories).filter(([, c]) => c.amount > 0);
+  const total = activeCats.reduce((s, [, c]) => s + c.amount, 0) || 1;
+
+  if (activeCats.length === 0) {
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+
+  const existing = new Set([...grid.querySelectorAll(".cat-card")].map(el => el.dataset.cat));
+
+  activeCats.forEach(([name, data]) => {
+    const pct = Math.round((data.amount / total) * 100);
+    const isWaste = data.type === "Wastage" || WASTAGE_CATS.has(name);
+
+    if (!existing.has(name)) {
+      const card = document.createElement("div");
+      card.className = `cat-card${isWaste ? " bad" : ""}`;
+      card.dataset.cat = name;
+      card.innerHTML = `
+        <div class="c-icon">${data.icon}</div>
+        <div class="c-name">${name}</div>
+        <div class="c-amt" id="ca-${name}">₹${data.amount.toLocaleString("en-IN")}</div>
+        <div class="c-bar-bg"><div class="c-bar" id="cb-${name}" style="width:0%"></div></div>
+        <div class="c-pct" id="cp-${name}">${pct}% of total</div>`;
+      grid.appendChild(card);
+      // Trigger entrance animation on next two frames
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        card.classList.add("show");
+        document.getElementById(`cb-${name}`).style.width = pct + "%";
+      }));
+    } else {
+      const ca = document.getElementById(`ca-${name}`);
+      const cb = document.getElementById(`cb-${name}`);
+      const cp = document.getElementById(`cp-${name}`);
+      if (ca) ca.textContent = `₹${data.amount.toLocaleString("en-IN")}`;
+      if (cb) cb.style.width = pct + "%";
+      if (cp) cp.textContent = `${pct}% of total`;
+    }
+  });
+}
+
+function renderLedger() {
+  const myTxns = S.transactions.filter(t => t.profile === S.profile && !t.festival).slice().reverse();
+  const list = document.getElementById("led-list");
+  if (!myTxns.length) {
+    list.innerHTML = `<div class="led-empty">No transactions yet.<br>Your private log will appear here.</div>`;
+    return;
+  }
+  list.innerHTML = myTxns.slice(0, 40).map(t => `
+    <div class="led-item">
+      <div class="led-dot ${t.type === "Wastage" || WASTAGE_CATS.has(t.category) ? "w" : "g"}"></div>
+      <div class="led-body">
+        <div class="led-date">${t.date}</div>
+        ${t.text}
+        <span class="led-tag ${t.type === "Wastage" || WASTAGE_CATS.has(t.category) ? "w" : "g"}"> · ${t.type}</span>
+      </div>
+      <div class="led-amt">₹${(t.amount || 0).toLocaleString("en-IN")}</div>
+    </div>`).join("");
+}
+
+function renderStreak() {
+  const n = S.streak.count || 0;
+  document.getElementById("s-count").innerHTML = `${n} <span>Day${n !== 1 ? "s" : ""} No Wastage</span>`;
+  const card = document.getElementById("streak-card");
+  const badge = document.getElementById("plat-badge");
+  if (n >= 3) { card.classList.add("lit"); badge.style.display = "block"; }
+  else { card.classList.remove("lit"); badge.style.display = "none"; }
+}
+
+function renderFestPills() {
+  const pills = document.getElementById("fest-pills");
+  if (!pills) return;
+  const icons = { Gifts:"🎁", Gold:"🪙", Puja:"🪔" };
+  pills.innerHTML = Object.entries(S.festEntries).map(([k, v]) =>
+    `<div class="fpill">${icons[k]} ${k} — ₹${v.toLocaleString("en-IN")}</div>`
+  ).join("");
+}
+
+// ═══════════════════════════════
+// FESTIVAL MODE
+// ═══════════════════════════════
+function toggleFest() {
+  S.festMode = document.getElementById("fest-tog").checked;
+  document.body.classList.toggle("fest", S.festMode);
+  document.getElementById("fest-box").style.display = S.festMode ? "block" : "none";
+  if (S.festMode) renderFestPills();
+  showToast(S.festMode ? "🪔 Festival Mode — Festive spend isolated" : "Festival Mode off");
+  saveState();
+}
+
+// ═══════════════════════════════
+// REPORT
+// ═══════════════════════════════
+function openReport() {
+  const now = new Date();
+  const total = Object.values(S.categories).reduce((s, c) => s + c.amount, 0);
+  const wasteTxns = S.transactions.filter(t => !t.festival && (t.type === "Wastage" || WASTAGE_CATS.has(t.category)));
+  const goodTxns = S.transactions.filter(t => !t.festival && t.type !== "Wastage" && !WASTAGE_CATS.has(t.category));
+  const wasteAmt = wasteTxns.reduce((s, t) => s + (t.amount || 0), 0);
+  const goodAmt = goodTxns.reduce((s, t) => s + (t.amount || 0), 0);
+  const wastePct = total > 0 ? Math.round((wasteAmt / total) * 100) : 0;
+
+  let grade = wastePct === 0 ? "S✦" : wastePct <= 5 ? "A+" : wastePct <= 12 ? "A" : wastePct <= 25 ? "B" : wastePct <= 40 ? "C" : "D";
+  const insights = {
+    "S✦": "Zero wastage this month. Exceptional household capital discipline — Platinum tier.",
+    "A+": "Outstanding. Under 5% on wastage reflects elite financial management.",
+    "A": "Excellent performance. Minor leisure spend well within healthy bounds.",
+    "B": "Good household hygiene. Tighten discretionary categories next cycle.",
+    "C": "Moderate wastage. Review leisure entries and redirect to asset categories.",
+    "D": "High wastage ratio. Immediate budget review recommended."
+  };
+
+  const topCat = Object.entries(S.categories).sort((a,b) => b[1].amount - a[1].amount)[0];
+
+  document.getElementById("rep-sub").textContent = `${MONTHS[now.getMonth()]} ${now.getFullYear()} · ${S.transactions.length} Entries`;
+  document.getElementById("rep-grade").textContent = grade;
+  document.getElementById("rep-rows").innerHTML = `
+    <div class="rep-row"><div class="rep-rl">Total Cash Moved</div><div class="rep-rv n">₹${total.toLocaleString("en-IN")}</div></div>
+    <div class="rep-row"><div class="rep-rl">Assets / Needs</div><div class="rep-rv g">₹${goodAmt.toLocaleString("en-IN")} (${total>0?Math.round(goodAmt/total*100):0}%)</div></div>
+    <div class="rep-row"><div class="rep-rl">Leisure / Wastage</div><div class="rep-rv r">₹${wasteAmt.toLocaleString("en-IN")} (${wastePct}%)</div></div>
+    <div class="rep-row"><div class="rep-rl">Streak</div><div class="rep-rv n">${S.streak.count} day${S.streak.count!==1?"s":""} no wastage</div></div>
+    <div class="rep-row"><div class="rep-rl">Top Category</div><div class="rep-rv n">${topCat ? topCat[0] : "—"}</div></div>`;
+  document.getElementById("rep-insight").textContent = insights[grade] || "";
+  openModal("rep-modal");
+}
+
+// ═══════════════════════════════
+// RECHARGE REMINDER
+// ═══════════════════════════════
+function checkRechargeReminder() {
+  const today = new Date(), day = today.getDate(), until = 9 - day;
+  if (until >= 0 && until <= 3) {
+    const key = `rch_${today.getFullYear()}_${today.getMonth()}`;
+    if (!localStorage.getItem(key)) setTimeout(() => openModal("rch-modal"), 1800);
+  }
+}
+
+function rechargeYes() {
+  const today = new Date();
+  const d9 = new Date(today.getFullYear(), today.getMonth(), 9);
+  const txn = {
+    id: Date.now(), profile: 2, category: "Bills/Recharges",
+    amount: RECHARGE_AMOUNT, type: "Good Spend",
+    text: "Sister's Monthly Mobile Recharge — Auto Logged",
+    date: fmtDate(d9), ts: d9.toISOString(), festival: false
+  };
+  const key = `rch_${today.getFullYear()}_${today.getMonth()}`;
+  localStorage.setItem(key, "1");
+  closeModal("rch-modal");
+  commitTxn(txn);
+  showToast(`✓ ₹${RECHARGE_AMOUNT} logged under Sister's Bills`);
+}
+
+// ═══════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+document.addEventListener("click", e => { if (e.target.classList.contains("overlay")) e.target.classList.remove("open"); });
+
+// ═══════════════════════════════
+// OFFLINE
+// ═══════════════════════════════
+function updateOfflineBanner() {
+  document.getElementById("offline-bar").style.display = navigator.onLine ? "none" : "flex";
+}
+window.addEventListener("online", () => {
+  updateOfflineBanner();
+  const pending = [...S.pendingSync];
+  S.pendingSync = [];
+  pending.forEach(t => commitTxn(t));
+  if (pending.length) showToast(`✓ ${pending.length} offline entr${pending.length>1?"ies":"y"} synced`);
+});
+window.addEventListener("offline", updateOfflineBanner);
+
+// ═══════════════════════════════
+// UTILS
+// ═══════════════════════════════
+function autoResize(el) {
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 120) + "px";
+}
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("exp-input").addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); logExpense(); }
+  });
+});
+
+let _tt;
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(_tt); _tt = setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+// ═══════════════════════════════
+// BOOT
+// ═══════════════════════════════
+loadState();
+renderFestPills();
+bootApp();
+</script>
+</body>
+</html>
