@@ -109,11 +109,13 @@
 
     <script>
         // ==========================================
-        // 🔑 SUPABASE CLOUD CONNECTION
+        // 🔑 SUPABASE CLOUD CONNECTION (CONFIGURED)
         // ==========================================
         const SUPABASE_URL = "https://ffgagiqsrpvpgeexzhnh.supabase.co"; 
         const SUPABASE_KEY = "sb_publishable_P_J4_hLf-FoBv1fDgnEtdg_eKXFChGv";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Setup secure database client connect
+        const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let activeUser = "";
 
@@ -163,7 +165,7 @@
                 return;
             }
 
-            const { error } = await supabase
+            const { error } = await dbClient
                 .from('family_expenses')
                 .insert([{ user_name: activeUser, category: category, amount: amount }]);
 
@@ -179,7 +181,7 @@
         async function removeExpenseEntry(idValue) {
             if (!confirm("Are you sure you want to permanently delete this expense?")) return;
 
-            const { error } = await supabase
+            const { error } = await dbClient
                 .from('family_expenses')
                 .delete()
                 .eq('id', idValue);
@@ -193,7 +195,7 @@
 
         // Pull Sync Updates from Cloud
         async function fetchDatabaseUpdates() {
-            const { data, error } = await supabase
+            const { data, error } = await dbClient
                 .from('family_expenses')
                 .select('*')
                 .order('created_at', { ascending: false });
