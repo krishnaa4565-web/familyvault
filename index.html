@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Vault & Budget Planner</title>
+    <title>Premium Family Vault</title>
     <style>
         :root {
             --bg-color: #0b0c10;
@@ -27,32 +27,28 @@
 
         .card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
         
-        /* Setup Screen */
+        /* Setup Profile View */
         #profileScreen { text-align: center; padding: 40px 20px; }
         select, input[type="text"], input[type="number"], button {
             width: 100%; background: #1f2330; color: white; border: 1px solid #2d3345;
             padding: 14px; border-radius: 10px; font-size: 1rem; outline: none; margin-bottom: 15px;
-            transition: all 0.3s ease;
         }
-        select:focus, input:focus { border-color: var(--accent); }
         button { background: var(--accent); color: black; font-weight: bold; cursor: pointer; border: none; margin-bottom: 0; }
-        button:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        button:hover { background: var(--accent-hover); }
 
-        /* Dashboard Styles */
+        /* Dashboard Items */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .stat-box { text-align: center; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border); }
         .stat-box h2 { color: var(--accent); font-size: 1.8rem; margin-top: 5px; }
-        .stat-box h2.budget-remaining { color: var(--success); }
 
-        /* Progress Bar */
-        .progress-container { margin-top: 10px; background: #1f2330; border-radius: 8px; height: 10px; overflow: hidden; }
+        .progress-container { margin-top: 15px; background: #1f2330; border-radius: 8px; height: 10px; overflow: hidden; }
         .progress-bar { background: var(--accent); height: 100%; width: 0%; transition: width 0.4s ease; }
 
         .input-group { display: flex; gap: 10px; }
         .input-group input { margin-bottom: 0; }
         .input-group button { width: 60px; padding: 0; font-size: 1.2rem; }
 
-        /* Ledger and Categorization list */
+        /* Ledger Core Lists */
         .ledger-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .ledger-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1d29; border-radius: 8px; border-left: 4px solid var(--accent); }
         .ledger-left { display: flex; flex-direction: column; gap: 4px; }
@@ -61,23 +57,22 @@
         .cat-badge { background: #252a3a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--text-muted); width: max-content; }
         .amount-right { display: flex; align-items: center; gap: 12px; }
         .amount-tag { font-weight: bold; font-size: 1.1rem; color: var(--text-main); }
-        .delete-btn { color: var(--danger); cursor: pointer; font-size: 1.1rem; opacity: 0.7; transition: 0.2s; }
-        .delete-btn:hover { opacity: 1; scale: 1.1; }
+        .delete-btn { color: var(--danger); cursor: pointer; font-size: 1.1rem; opacity: 0.7; }
 
         .chart-box { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
         .chart-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
         .chart-bar-bg { flex-grow: 1; margin: 0 10px; background: #1f2330; height: 8px; border-radius: 4px; overflow: hidden; }
         .chart-bar-fill { background: var(--accent); height: 100%; width: 0%; }
+        .reset-link { font-size: 0.75rem; color: #444; text-align: center; cursor: pointer; margin-top: 10px; text-decoration: underline; }
     </style>
 </head>
 <body>
 
     <div class="container">
         
-        <!-- DEVICE LOCK PROFILE LOGIN -->
         <div id="profileScreen" class="card">
-            <h2 style="color: var(--accent); margin-bottom: 10px;">🔒 Secure Family Vault</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">This profile selection will permanently lock onto this device.</p>
+            <h2 style="color: var(--accent); margin-bottom: 10px;">🔒 Premium Family Vault</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">Select your identity profile to unlock the operational dashboard.</p>
             
             <select id="profileSelector">
                 <option value="Papa">Papa</option>
@@ -85,10 +80,9 @@
                 <option value="Brother">Brother</option>
                 <option value="Sister">Sister</option>
             </select>
-            <button onclick="lockAndLoginDevice()">Claim & Enter Dashboard</button>
+            <button onclick="lockAndLoginDevice()">Unlock Dashboard</button>
         </div>
 
-        <!-- MAIN PREMIUM DASHBOARD UI -->
         <div id="mainDashboard" style="display: none;">
             
             <div class="header">
@@ -96,21 +90,20 @@
                 <div class="user-badge" id="activeUserDisplay">👤 Profile</div>
             </div>
 
-            <!-- MONTHLY BUDGET PLANNER & METRICS -->
             <div class="card">
-                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">📅 Monthly Planner</h3>
+                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">📅 Monthly Limits Planner</h3>
                 <div class="input-group" style="margin-bottom: 15px;">
-                    <input type="number" id="monthlyBudgetInput" placeholder="Set Monthly Budget Limit (e.g. 20000)">
+                    <input type="number" id="monthlyBudgetInput" placeholder="Set Monthly Budget Limit (e.g. 30000)">
                     <button style="width: auto; padding: 0 15px; font-size: 0.9rem;" onclick="saveMonthlyBudget()">Set</button>
                 </div>
                 <div class="stats-grid">
                     <div class="stat-box">
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">POOL TOTAL SPENT</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">POOL TOTAL EXPENDED</span>
                         <h2 id="globalTotalDisplay">₹0</h2>
                     </div>
                     <div class="stat-box">
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">BUDGET REMAINING</span>
-                        <h2 id="budgetRemainingDisplay" class="budget-remaining">₹0</h2>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">BUDGET BALANCES REMAINING</span>
+                        <h2 id="budgetRemainingDisplay">₹0</h2>
                     </div>
                 </div>
                 <div class="progress-container">
@@ -118,211 +111,19 @@
                 </div>
             </div>
 
-            <!-- EXPENSE SENTENCE INPUT -->
             <div class="card">
-                <h3 style="font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; color: var(--text-muted);">💬 Express Log Input</h3>
+                <h3 style="font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; color: var(--text-muted);">💬 Express Transaction Logger</h3>
                 <div class="input-group">
-                    <input type="text" id="expenseInput" placeholder="Type text (e.g., 500 rupees for dinner with family)...">
+                    <input type="text" id="expenseInput" placeholder="Type info (e.g., 500 dinner with family)...">
                     <button onclick="handleIncomingLog()">➤</button>
                 </div>
             </div>
 
-            <!-- STATISTICAL ANALYSIS DISTRIBUTION -->
             <div class="card">
-                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--accent); margin-bottom: 12px;">📊 Distribution Statistics</h3>
-                <div class="chart-box" id="statsChartDistribution">
-                    <!-- Dynamic chart injection -->
-                </div>
+                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--accent); margin-bottom: 12px;">📊 Structural Category Statistics</h3>
+                <div class="chart-box" id="statsChartDistribution"></div>
             </div>
 
-            <!-- CHAT LOG HISTORY TRACKER -->
             <div class="card">
-                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">📜 Live Vault Log</h3>
-                <div class="ledger-list" id="globalLedgerList">
-                    <!-- Dynamic list items injection -->
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <script>
-        // CORE STATE LOCAL ENGINE
-        let activeUser = "";
-        let transactions = JSON.parse(localStorage.getItem("vault_v2_logs")) || [];
-        let globalBudget = parseFloat(localStorage.getItem("vault_v2_budget")) || 30000;
-
-        // Secure Device Identity Binding Protection
-        window.onload = function() {
-            document.getElementById('monthlyBudgetInput').value = globalBudget;
-            let hardwareLock = localStorage.getItem("vault_hardware_profile");
-            if(hardwareLock) {
-                activeUser = hardwareLock;
-                bypassToDashboard();
-            }
-        }
-
-        function lockAndLoginDevice() {
-            let chosenUser = document.getElementById('profileSelector').value;
-            localStorage.setItem("vault_hardware_profile", chosenUser);
-            activeUser = chosenUser;
-            bypassToDashboard();
-        }
-
-        function bypassToDashboard() {
-            document.getElementById('activeUserDisplay').innerText = "👤 " + activeUser;
-            document.getElementById('profileScreen').style.display = "none";
-            document.getElementById('mainDashboard').style.display = "block";
-            refreshDashboardUI();
-        }
-
-        function saveMonthlyBudget() {
-            let val = parseFloat(document.getElementById('monthlyBudgetInput').value) || 0;
-            if(val > 0) {
-                globalBudget = val;
-                localStorage.setItem("vault_v2_budget", globalBudget);
-                refreshDashboardUI();
-            }
-        }
-
-        // Semantic Intent Extraction System
-        function parsedSentenceEngine(sentence) {
-            let lower = sentence.toLowerCase();
-            let amountMatch = lower.match(/\d+/);
-            let extractedAmount = amountMatch ? parseFloat(amountMatch[0]) : 0;
-            
-            let categoricalTarget = "Other / General";
-            if (lower.includes("petrol") || lower.includes("fuel") || lower.includes("bike") || lower.includes("car") || lower.includes("travel")) {
-                categoricalTarget = "Transport & Fuel";
-            } else if (lower.includes("food") || lower.includes("dinner") || lower.includes("grocery") || lower.includes("restaurant") || lower.includes("swiggy") || lower.includes("zomato")) {
-                categoricalTarget = "Food & Dining";
-            } else if (lower.includes("nail") || lower.includes("makeup") || lower.includes("salon") || lower.includes("clothes") || lower.includes("shopping")) {
-                categoricalTarget = "Personal Grooming";
-            } else if (lower.includes("bill") || lower.includes("rent") || lower.includes("electricity") || lower.includes("recharge")) {
-                categoricalTarget = "Bills & Utilities";
-            }
-            return { amount: extractedAmount, category: categoricalTarget };
-        }
-
-        function handleIncomingLog() {
-            let field = document.getElementById('expenseInput');
-            let rawText = field.value.trim();
-            if(!rawText) return;
-
-            let result = parsedSentenceEngine(rawText);
-            if(result.amount <= 0) {
-                alert("Could not read a valid numeric amount. Try writing: '500 dinner'");
-                return;
-            }
-
-            let newTransaction = {
-                id: Date.now(),
-                user: activeUser,
-                text: rawText, // Stored locally
-                category: result.category,
-                amount: result.amount
-            };
-
-            transactions.unshift(newTransaction);
-            saveToStorage();
-            field.value = "";
-            refreshDashboardUI();
-        }
-
-        // PREMIUM FEATURE: Clear logs but leave categories/statistics metrics completely functional
-        function deleteHistoryLogItem(idTarget) {
-            transactions = transactions.map(item => {
-                if(item.id === idTarget) {
-                    return {
-                        id: item.id,
-                        user: item.user,
-                        text: "[Chat Log Cleared]", // Erased chat footprint safely
-                        category: item.category,  // Keeps category inside stats intact
-                        amount: item.amount       // Keeps math inside stats intact
-                    };
-                }
-                return item;
-            });
-            saveToStorage();
-            refreshDashboardUI();
-        }
-
-        function saveToStorage() {
-            localStorage.setItem("vault_v2_logs", JSON.stringify(transactions));
-        }
-
-        function refreshDashboardUI() {
-            let totalSpent = 0;
-            let categoriesTotals = {
-                "Food & Dining": 0,
-                "Transport & Fuel": 0,
-                "Personal Grooming": 0,
-                "Bills & Utilities": 0,
-                "Other / General": 0
-            };
-
-            let container = document.getElementById('globalLedgerList');
-            container.innerHTML = "";
-
-            if(transactions.length === 0) {
-                container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.95rem; text-align:center; padding:10px;">Vault is clean. No transactions reported.</p>`;
-            }
-
-            transactions.forEach(item => {
-                totalSpent += item.amount;
-                if(categoriesTotals[item.category] !== undefined) {
-                    categoriesTotals[item.category] += item.amount;
-                } else {
-                    categoriesTotals["Other / General"] += item.amount;
-                }
-
-                // Render logs dynamically
-                container.innerHTML += `
-                    <div class="ledger-item">
-                        <div class="ledger-left">
-                            <div>
-                                <span class="member-tag">[${item.user}]</span>
-                                <span class="chat-text">${item.text}</span>
-                            </div>
-                            <span class="cat-badge">${item.category}</span>
-                        </div>
-                        <div class="amount-right">
-                            <span class="amount-tag">₹${item.amount}</span>
-                            <span class="delete-btn" onclick="deleteHistoryLogItem(${item.id})">🗑️</span>
-                        </div>
-                    </div>
-                `;
-            });
-
-            // Update UI Statistics Indicators
-            document.getElementById('globalTotalDisplay').innerText = "₹" + totalSpent;
-            let remaining = globalBudget - totalSpent;
-            let remainingBox = document.getElementById('budgetRemainingDisplay');
-            remainingBox.innerText = "₹" + remaining;
-            
-            if(remaining < 0) remainingBox.style.color = "var(--danger)";
-            else remainingBox.style.color = "var(--success)";
-
-            let pct = Math.min((totalSpent / globalBudget) * 100, 100);
-            document.getElementById('budgetProgressBar').style.width = pct + "%";
-
-            // Render Dynamic Analytics Bars
-            let chartBox = document.getElementById('statsChartDistribution');
-            chartBox.innerHTML = "";
-            for(let key in categoriesTotals) {
-                let catAmt = categoriesTotals[key];
-                let catPct = totalSpent > 0 ? (catAmt / totalSpent) * 100 : 0;
-                chartBox.innerHTML += `
-                    <div class="chart-row">
-                        <span style="width: 120px; text-overflow:ellipsis; overflow:hidden;">${key}</span>
-                        <div class="chart-bar-bg">
-                            <div class="chart-bar-fill" style="width: ${catPct}%"></div>
-                        </div>
-                        <span style="font-weight:bold; width:60px; text-align:right;">₹${catAmt}</span>
-                    </div>
-                `;
-            }
-        }
-    </script>
-</body>
-</html>
+                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">📜 Live Vault Storage Ledger</h3>
+                <div class="ledger-list"
