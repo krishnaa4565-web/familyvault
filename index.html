@@ -3,67 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Vault Tracker</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Family Vault & Budget Planner</title>
     <style>
         :root {
-            --bg-color: #0d0e12;
-            --card-bg: #16181d;
+            --bg-color: #0b0c10;
+            --card-bg: #141722;
+            --accent: #d4af37;
+            --accent-hover: #f0c950;
             --text-main: #ffffff;
             --text-muted: #8b8e98;
-            --gold: #d4af37;
-            --gold-hover: #f0c950;
             --danger: #ff4a4a;
-            --border: #2a2d35;
+            --border: #222632;
+            --success: #2ec4b6;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; }
-        
-        .container { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        .container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
         .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
-        .header h1 { color: var(--gold); font-size: 1.4rem; font-weight: 600; }
-        .user-badge { background: #23262f; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border); color: var(--gold); }
+        .header h1 { color: var(--accent); font-size: 1.4rem; font-weight: bold; letter-spacing: 1px; }
+        .user-badge { background: #1f2330; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; border: 1px solid var(--border); color: var(--accent); }
 
-        .card { background-color: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border); }
+        .card { background-color: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
         
-        /* Profile Selection View */
-        #profileScreen { text-align: center; padding: 30px 10px; }
-        select, input[type="text"], button {
-            width: 100%; background: #23262f; color: white; border: 1px solid #3a3f50;
-            padding: 12px; border-radius: 8px; font-size: 1rem; outline: none; margin-bottom: 15px;
+        /* Setup Screen */
+        #profileScreen { text-align: center; padding: 40px 20px; }
+        select, input[type="text"], input[type="number"], button {
+            width: 100%; background: #1f2330; color: white; border: 1px solid #2d3345;
+            padding: 14px; border-radius: 10px; font-size: 1rem; outline: none; margin-bottom: 15px;
+            transition: all 0.3s ease;
         }
-        button { background: var(--gold); color: black; font-weight: bold; cursor: pointer; border: none; margin-bottom: 0; }
-        button:hover { background: var(--gold-hover); }
+        select:focus, input:focus { border-color: var(--accent); }
+        button { background: var(--accent); color: black; font-weight: bold; cursor: pointer; border: none; margin-bottom: 0; }
+        button:hover { background: var(--accent-hover); transform: translateY(-1px); }
 
-        /* Total Display Ring */
-        .total-box { text-align: center; padding: 15px; }
-        .total-box h2 { color: var(--gold); font-size: 2.2rem; margin-top: 5px; }
+        /* Dashboard Styles */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-box { text-align: center; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border); }
+        .stat-box h2 { color: var(--accent); font-size: 1.8rem; margin-top: 5px; }
+        .stat-box h2.budget-remaining { color: var(--success); }
 
-        /* Input Configuration */
+        /* Progress Bar */
+        .progress-container { margin-top: 10px; background: #1f2330; border-radius: 8px; height: 10px; overflow: hidden; }
+        .progress-bar { background: var(--accent); height: 100%; width: 0%; transition: width 0.4s ease; }
+
         .input-group { display: flex; gap: 10px; }
         .input-group input { margin-bottom: 0; }
         .input-group button { width: 60px; padding: 0; font-size: 1.2rem; }
 
-        /* Sync Stream Ledger */
-        .ledger-list { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .ledger-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #23262f; }
-        .ledger-item:last-child { border-bottom: none; }
-        .member-tag { font-weight: bold; font-size: 0.9rem; margin-right: 5px; color: #fff; }
-        .cat-badge { background: #2a2d35; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--text-muted); }
-        .amount-tag { color: var(--gold); font-weight: bold; font-size: 1rem; }
-        .delete-btn { color: var(--danger); cursor: pointer; margin-left: 15px; font-size: 1rem; padding: 0 5px; opacity: 0.7; }
-        .delete-btn:hover { opacity: 1; }
+        /* Ledger and Categorization list */
+        .ledger-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .ledger-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1d29; border-radius: 8px; border-left: 4px solid var(--accent); }
+        .ledger-left { display: flex; flex-direction: column; gap: 4px; }
+        .member-tag { font-weight: bold; font-size: 0.85rem; color: var(--accent); }
+        .chat-text { font-size: 0.95rem; color: var(--text-main); }
+        .cat-badge { background: #252a3a; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--text-muted); width: max-content; }
+        .amount-right { display: flex; align-items: center; gap: 12px; }
+        .amount-tag { font-weight: bold; font-size: 1.1rem; color: var(--text-main); }
+        .delete-btn { color: var(--danger); cursor: pointer; font-size: 1.1rem; opacity: 0.7; transition: 0.2s; }
+        .delete-btn:hover { opacity: 1; scale: 1.1; }
+
+        .chart-box { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .chart-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
+        .chart-bar-bg { flex-grow: 1; margin: 0 10px; background: #1f2330; height: 8px; border-radius: 4px; overflow: hidden; }
+        .chart-bar-fill { background: var(--accent); height: 100%; width: 0%; }
     </style>
 </head>
 <body>
 
     <div class="container">
         
+        <!-- DEVICE LOCK PROFILE LOGIN -->
         <div id="profileScreen" class="card">
-            <h2 style="color: var(--gold); margin-bottom: 10px;">Family Vault Setup</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Select your profile identity to enter the vault.</p>
+            <h2 style="color: var(--accent); margin-bottom: 10px;">🔒 Secure Family Vault</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">This profile selection will permanently lock onto this device.</p>
             
             <select id="profileSelector">
                 <option value="Papa">Papa</option>
@@ -71,36 +85,61 @@
                 <option value="Brother">Brother</option>
                 <option value="Sister">Sister</option>
             </select>
-            <button onclick="loginProfile()">Enter Dashboard</button>
+            <button onclick="lockAndLoginDevice()">Claim & Enter Dashboard</button>
         </div>
 
+        <!-- MAIN PREMIUM DASHBOARD UI -->
         <div id="mainDashboard" style="display: none;">
             
             <div class="header">
-                <h1>◆ Family Vault</h1>
-                <div class="user-badge" id="activeUserDisplay">Profile</div>
+                <h1>◆ FAMILY VAULT</h1>
+                <div class="user-badge" id="activeUserDisplay">👤 Profile</div>
             </div>
 
-            <div class="card total-box">
-                <span style="font-size: 0.8rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Total Shared Family Pool</span>
-                <h2 id="globalTotalDisplay">₹0</h2>
-            </div>
-
+            <!-- MONTHLY BUDGET PLANNER & METRICS -->
             <div class="card">
-                <h3 style="font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; color: var(--text-muted);">Log New Entry</h3>
+                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;">📅 Monthly Planner</h3>
+                <div class="input-group" style="margin-bottom: 15px;">
+                    <input type="number" id="monthlyBudgetInput" placeholder="Set Monthly Budget Limit (e.g. 20000)">
+                    <button style="width: auto; padding: 0 15px; font-size: 0.9rem;" onclick="saveMonthlyBudget()">Set</button>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">POOL TOTAL SPENT</span>
+                        <h2 id="globalTotalDisplay">₹0</h2>
+                    </div>
+                    <div class="stat-box">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">BUDGET REMAINING</span>
+                        <h2 id="budgetRemainingDisplay" class="budget-remaining">₹0</h2>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="budgetProgressBar"></div>
+                </div>
+            </div>
+
+            <!-- EXPENSE SENTENCE INPUT -->
+            <div class="card">
+                <h3 style="font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; color: var(--text-muted);">💬 Express Log Input</h3>
                 <div class="input-group">
-                    <input type="text" id="expenseInput" placeholder="Type sentence (e.g., 500 dinner or 200 petrol)...">
-                    <button onclick="addExpenseEntry()">➤</button>
+                    <input type="text" id="expenseInput" placeholder="Type text (e.g., 500 rupees for dinner with family)...">
+                    <button onclick="handleIncomingLog()">➤</button>
                 </div>
             </div>
 
+            <!-- STATISTICAL ANALYSIS DISTRIBUTION -->
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--gold);">Live Family Stream</h3>
-                    <span onclick="fetchDatabaseUpdates()" style="cursor: pointer; color: var(--text-muted); font-size: 0.75rem;">🔄 REFRESH</span>
+                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--accent); margin-bottom: 12px;">📊 Distribution Statistics</h3>
+                <div class="chart-box" id="statsChartDistribution">
+                    <!-- Dynamic chart injection -->
                 </div>
+            </div>
+
+            <!-- CHAT LOG HISTORY TRACKER -->
+            <div class="card">
+                <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">📜 Live Vault Log</h3>
                 <div class="ledger-list" id="globalLedgerList">
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">Connecting to family database cloud...</p>
+                    <!-- Dynamic list items injection -->
                 </div>
             </div>
 
@@ -108,141 +147,182 @@
     </div>
 
     <script>
-        // ==========================================
-        // 🔑 SUPABASE CLOUD CONNECTION (CONFIGURED)
-        // ==========================================
-        const SUPABASE_URL = "https://ffgagiqsrpvpgeexzhnh.supabase.co"; 
-        const SUPABASE_KEY = "sb_publishable_P_J4_hLf-FoBv1fDgnEtdg_eKXFChGv";
-        
-        // Setup secure database client connect
-        const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        // CORE STATE LOCAL ENGINE
         let activeUser = "";
+        let transactions = JSON.parse(localStorage.getItem("vault_v2_logs")) || [];
+        let globalBudget = parseFloat(localStorage.getItem("vault_v2_budget")) || 30000;
 
-        // Profile Sign-In Logic
-        function loginProfile() {
-            const chosenName = document.getElementById('profileSelector').value;
-            activeUser = chosenName;
-            
+        // Secure Device Identity Binding Protection
+        window.onload = function() {
+            document.getElementById('monthlyBudgetInput').value = globalBudget;
+            let hardwareLock = localStorage.getItem("vault_hardware_profile");
+            if(hardwareLock) {
+                activeUser = hardwareLock;
+                bypassToDashboard();
+            }
+        }
+
+        function lockAndLoginDevice() {
+            let chosenUser = document.getElementById('profileSelector').value;
+            localStorage.setItem("vault_hardware_profile", chosenUser);
+            activeUser = chosenUser;
+            bypassToDashboard();
+        }
+
+        function bypassToDashboard() {
             document.getElementById('activeUserDisplay').innerText = "👤 " + activeUser;
             document.getElementById('profileScreen').style.display = "none";
             document.getElementById('mainDashboard').style.display = "block";
-            
-            fetchDatabaseUpdates();
+            refreshDashboardUI();
         }
 
-        // Sentence Processing Engine
-        function analyzeSentence(sentenceText) {
-            const cleanText = sentenceText.toLowerCase();
-            const numericalMatch = cleanText.match(/\d+/);
-            const finalAmount = numericalMatch ? parseFloat(numericalMatch[0]) : 0;
-
-            let finalCategory = "Other / Miscellaneous";
-            
-            if (cleanText.includes("petrol") || cleanText.includes("fuel") || cleanText.includes("bike") || cleanText.includes("car") || cleanText.includes("auto")) {
-                finalCategory = "Transport & Fuel";
-            } else if (cleanText.includes("food") || cleanText.includes("dinner") || cleanText.includes("grocery") || cleanText.includes("restaurant") || cleanText.includes("swiggy") || cleanText.includes("zomato")) {
-                finalCategory = "Food & Dining";
-            } else if (cleanText.includes("nail") || cleanText.includes("makeup") || cleanText.includes("salon") || cleanText.includes("clothes") || cleanText.includes("shopping")) {
-                finalCategory = "Personal Grooming";
-            } else if (cleanText.includes("bill") || cleanText.includes("rent") || cleanText.includes("electricity") || cleanText.includes("wifi") || cleanText.includes("recharge")) {
-                finalCategory = "Bills & Utilities";
+        function saveMonthlyBudget() {
+            let val = parseFloat(document.getElementById('monthlyBudgetInput').value) || 0;
+            if(val > 0) {
+                globalBudget = val;
+                localStorage.setItem("vault_v2_budget", globalBudget);
+                refreshDashboardUI();
             }
-
-            return { amount: finalAmount, category: finalCategory };
         }
 
-        // Insert Entry to Cloud Database
-        async function addExpenseEntry() {
-            const inputField = document.getElementById('expenseInput');
-            const statement = inputField.value.trim();
-            if (!statement) return;
+        // Semantic Intent Extraction System
+        function parsedSentenceEngine(sentence) {
+            let lower = sentence.toLowerCase();
+            let amountMatch = lower.match(/\d+/);
+            let extractedAmount = amountMatch ? parseFloat(amountMatch[0]) : 0;
+            
+            let categoricalTarget = "Other / General";
+            if (lower.includes("petrol") || lower.includes("fuel") || lower.includes("bike") || lower.includes("car") || lower.includes("travel")) {
+                categoricalTarget = "Transport & Fuel";
+            } else if (lower.includes("food") || lower.includes("dinner") || lower.includes("grocery") || lower.includes("restaurant") || lower.includes("swiggy") || lower.includes("zomato")) {
+                categoricalTarget = "Food & Dining";
+            } else if (lower.includes("nail") || lower.includes("makeup") || lower.includes("salon") || lower.includes("clothes") || lower.includes("shopping")) {
+                categoricalTarget = "Personal Grooming";
+            } else if (lower.includes("bill") || lower.includes("rent") || lower.includes("electricity") || lower.includes("recharge")) {
+                categoricalTarget = "Bills & Utilities";
+            }
+            return { amount: extractedAmount, category: categoricalTarget };
+        }
 
-            const { amount, category } = analyzeSentence(statement);
+        function handleIncomingLog() {
+            let field = document.getElementById('expenseInput');
+            let rawText = field.value.trim();
+            if(!rawText) return;
 
-            if (amount <= 0) {
-                alert("Please input a valid number inside your sentence (e.g., 500 dinner).");
+            let result = parsedSentenceEngine(rawText);
+            if(result.amount <= 0) {
+                alert("Could not read a valid numeric amount. Try writing: '500 dinner'");
                 return;
             }
 
-            const { error } = await dbClient
-                .from('family_expenses')
-                .insert([{ user_name: activeUser, category: category, amount: amount }]);
+            let newTransaction = {
+                id: Date.now(),
+                user: activeUser,
+                text: rawText, // Stored locally
+                category: result.category,
+                amount: result.amount
+            };
 
-            if (error) {
-                alert("Database Error: " + error.message);
-            } else {
-                inputField.value = "";
-                fetchDatabaseUpdates(); 
-            }
+            transactions.unshift(newTransaction);
+            saveToStorage();
+            field.value = "";
+            refreshDashboardUI();
         }
 
-        // Delete Entry from Cloud Database
-        async function removeExpenseEntry(idValue) {
-            if (!confirm("Are you sure you want to permanently delete this expense?")) return;
-
-            const { error } = await dbClient
-                .from('family_expenses')
-                .delete()
-                .eq('id', idValue);
-
-            if (error) {
-                alert("Failed to delete entry: " + error.message);
-            } else {
-                fetchDatabaseUpdates();
-            }
+        // PREMIUM FEATURE: Clear logs but leave categories/statistics metrics completely functional
+        function deleteHistoryLogItem(idTarget) {
+            transactions = transactions.map(item => {
+                if(item.id === idTarget) {
+                    return {
+                        id: item.id,
+                        user: item.user,
+                        text: "[Chat Log Cleared]", // Erased chat footprint safely
+                        category: item.category,  // Keeps category inside stats intact
+                        amount: item.amount       // Keeps math inside stats intact
+                    };
+                }
+                return item;
+            });
+            saveToStorage();
+            refreshDashboardUI();
         }
 
-        // Pull Sync Updates from Cloud
-        async function fetchDatabaseUpdates() {
-            const { data, error } = await dbClient
-                .from('family_expenses')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                document.getElementById('globalLedgerList').innerHTML = `<p style="color:red; font-size:0.85rem;">Failed to fetch database information.</p>`;
-                return;
-            }
-
-            populateDashboardMetrics(data);
+        function saveToStorage() {
+            localStorage.setItem("vault_v2_logs", JSON.stringify(transactions));
         }
 
-        // Update Interface Values
-        function populateDashboardMetrics(expensesList) {
-            const streamContainer = document.getElementById('globalLedgerList');
-            
-            if (!expensesList || expensesList.length === 0) {
-                streamContainer.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">No expenses logged in this pool yet.</p>`;
-                document.getElementById('globalTotalDisplay').innerText = "₹0";
-                return;
+        function refreshDashboardUI() {
+            let totalSpent = 0;
+            let categoriesTotals = {
+                "Food & Dining": 0,
+                "Transport & Fuel": 0,
+                "Personal Grooming": 0,
+                "Bills & Utilities": 0,
+                "Other / General": 0
+            };
+
+            let container = document.getElementById('globalLedgerList');
+            container.innerHTML = "";
+
+            if(transactions.length === 0) {
+                container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.95rem; text-align:center; padding:10px;">Vault is clean. No transactions reported.</p>`;
             }
 
-            let computedTotal = 0;
-            streamContainer.innerHTML = "";
+            transactions.forEach(item => {
+                totalSpent += item.amount;
+                if(categoriesTotals[item.category] !== undefined) {
+                    categoriesTotals[item.category] += item.amount;
+                } else {
+                    categoriesTotals["Other / General"] += item.amount;
+                }
 
-            expensesList.forEach(item => {
-                computedTotal += parseFloat(item.amount);
-
-                streamContainer.innerHTML += `
+                // Render logs dynamically
+                container.innerHTML += `
                     <div class="ledger-item">
-                        <div>
-                            <span class="member-tag">[${item.user_name}]</span>
+                        <div class="ledger-left">
+                            <div>
+                                <span class="member-tag">[${item.user}]</span>
+                                <span class="chat-text">${item.text}</span>
+                            </div>
                             <span class="cat-badge">${item.category}</span>
                         </div>
-                        <div style="display: flex; align-items: center;">
-                            <span class="amount-tag">+₹${item.amount}</span>
-                            <span class="delete-btn" onclick="removeExpenseEntry(${item.id})">🗑️</span>
+                        <div class="amount-right">
+                            <span class="amount-tag">₹${item.amount}</span>
+                            <span class="delete-btn" onclick="deleteHistoryLogItem(${item.id})">🗑️</span>
                         </div>
                     </div>
                 `;
             });
 
-            document.getElementById('globalTotalDisplay').innerText = "₹" + computedTotal;
-        }
+            // Update UI Statistics Indicators
+            document.getElementById('globalTotalDisplay').innerText = "₹" + totalSpent;
+            let remaining = globalBudget - totalSpent;
+            let remainingBox = document.getElementById('budgetRemainingDisplay');
+            remainingBox.innerText = "₹" + remaining;
+            
+            if(remaining < 0) remainingBox.style.color = "var(--danger)";
+            else remainingBox.style.color = "var(--success)";
 
-        // Automated refresh poll loop checking background updates every 5 seconds
-        setInterval(fetchDatabaseUpdates, 5000);
+            let pct = Math.min((totalSpent / globalBudget) * 100, 100);
+            document.getElementById('budgetProgressBar').style.width = pct + "%";
+
+            // Render Dynamic Analytics Bars
+            let chartBox = document.getElementById('statsChartDistribution');
+            chartBox.innerHTML = "";
+            for(let key in categoriesTotals) {
+                let catAmt = categoriesTotals[key];
+                let catPct = totalSpent > 0 ? (catAmt / totalSpent) * 100 : 0;
+                chartBox.innerHTML += `
+                    <div class="chart-row">
+                        <span style="width: 120px; text-overflow:ellipsis; overflow:hidden;">${key}</span>
+                        <div class="chart-bar-bg">
+                            <div class="chart-bar-fill" style="width: ${catPct}%"></div>
+                        </div>
+                        <span style="font-weight:bold; width:60px; text-align:right;">₹${catAmt}</span>
+                    </div>
+                `;
+            }
+        }
     </script>
 </body>
 </html>
